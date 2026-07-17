@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Molecular STEM - UniLicungo</title>
+    <!-- Link para o nosso arquivo de estilo visual -->
+    <link rel="stylesheet" href="css/estilo.css">
+    <!-- Importando a biblioteca 3Dmol.js de forma gratuita para renderização fluida -->
+    <script src="https://3dmol.org/build/3Dmol-min.js"></script>
+</head>
+<body>
+
+    <!-- Cabeçalho do Aplicativo (Contexto STEM Moçambique) -->
+    <header class="app-header">
+        <h1>Simulador de Geometria Molecular e Polaridade</h1>
+        <p>Abordagem STEM para o Ensino de Química | Universidade Licungo</p>
+    </header>
+
+    <!-- Conteiner Principal (Divide a tela em blocos de trabalho) -->
+    <main class="app-container">
+        
+        <!-- BARRA LATERAL ESQUERDA: Controles e Captura (Inspirado em OSRA, ChemSketch e PhET) -->
+        <section class="sidebar-controls">
+            <h2>Painel de Controle</h2>
+            
+            <!-- Integração com a Câmera (Ponto de partida para o pipeline do OSRA) -->
+            <div class="control-group">
+                <h3>📷 Captura de Estrutura</h3>
+                <button id="btn-camera" class="btn-primary">Tirar Foto de Desenho 2D</button>
+                <p class="hint">Tire foto de uma estrutura para processamento via OSRA/RDKit.</p>
+            </div>
+
+            <!-- Busca e Filtros para os 200 Compostos -->
+            <div class="control-group">
+                <h3>🔍 Biblioteca de Compostos</h3>
+                <input type="text" id="search-input" placeholder="Ex: H2O, Metano...">
+                <div class="filter-options">
+                    <label><input type="radio" name="tipo-composto" value="todos" checked> Todos</label>
+                    <label><input type="radio" name="tipo-composto" value="Inorgânico"> Inorgânicos</label>
+                    <label><input type="radio" name="tipo-composto" value="Orgânico"> Orgânicos</label>
+                </div>
+                <select id="select-molecule" size="5">
+                    <!-- As opções de moléculas serão injetadas aqui pelo dados.js -->
+                </select>
+            </div>
+
+            <!-- Opções Visuais Dinâmicas (Inspirado no PhET Molecule Shapes) -->
+            <div class="control-group">
+                <h3>👁️ Opções de Visualização</h3>
+                <label><input type="checkbox" id="chk-arrows" checked> Mostrar Vetores de Polaridade (Dipolo)</label>
+                <label><input type="checkbox" id="chk-lonepairs" checked> Mostrar Pares de Elétrons Isolados</label>
+                <label><input type="checkbox" id="chk-angles" checked> Mostrar Ângulos de Ligação</label>
+            </div>
+        </section>
+
+        <!-- ÁREA CENTRAL: O Visualizador 3D Fluido (Gerenciado pelo 3Dmol.js) -->
+        <section class="visualizer-container">
+            <!-- Este elemento é onde a mágica do 3D acontece com interações de toque e rotação -->
+            <div id="mol-3d-viewer"></div>
+            <div class="viewer-controls">
+                <button id="btn-style-ball">Esfera e Bastão</button>
+                <button id="btn-style-space">Espaço Preenchido (CPK)</button>
+            </div>
+        </section>
+
+        <!-- BARRA LATERAL DIREITA: Painel Didático e Explicativo (Teoria TRPEV/VSEPR) -->
+        <section class="sidebar-didactic">
+            <h2>Análise Científica</h2>
+            
+            <div id="info-card">
+                <h3 id="info-nome">Selecione uma molécula</h3>
+                <p><strong>Fórmula Química:</strong> <span id="info-formula">-</span></p>
+                <p><strong>Classificação:</strong> <span id="info-tipo">-</span></p>
+                <p><strong>Geometria Molecular:</strong> <span id="info-geometria">-</span></p>
+                <p><strong>Polaridade Resultante:</strong> <span id="info-polaridade">-</span></p>
+                
+                <hr>
+                
+                <h4>📚 Justificativa Teórica (TRPEV)</h4>
+                <p id="info-detalhes" class="didactic-text">
+                    Use o painel à esquerda para carregar uma molécula ou tirar uma foto para análise computacional do RDKit e OpenBabel.
+                </p>
+
+                <hr>
+
+                <h4>🇲🇿 Aplicação Contextualizada</h4>
+                <p id="info-mocambique" class="didactic-text">
+                    Informações sobre a relevância deste composto no cotidiano moçambicano e indústrias locais.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- IMPORTAÇÃO DOS NOSSOS SCRIPTS LOCAIS (A ordem importa!) -->
+    <!-- Primeiro carregamos os dados, depois o motor 3D, por fim a lógica do app -->
+    <script src="js/visualizador.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

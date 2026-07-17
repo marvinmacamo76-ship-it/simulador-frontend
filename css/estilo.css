@@ -1,0 +1,307 @@
+/* ==========================================================================
+   RESET E CONFIGURAÇÕES GERAIS
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #f1f5f9; /* Cinza claro de fundo */
+    color: #1e293b; /* Texto escuro com bom contraste */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================================
+   CABEÇALHO DA APLICAÇÃO (Contexto Universitário)
+   ========================================================================== */
+.app-header {
+    background-color: #0f172a; /* Azul escuro profundo */
+    color: #ffffff;
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: 4px solid #0ea5e9; /* Linha de destaque em azul vivo */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.app-header h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.app-header p {
+    font-size: 0.85rem;
+    color: #94a3b8; /* Texto secundário acinzentado */
+    margin-top: 3px;
+}
+
+/* ==========================================================================
+   LAYOUT PRINCIPAL EM 3 COLUNAS (CSS Grid)
+   ========================================================================== */
+.app-container {
+    display: grid;
+    grid-template-columns: 310px 1fr 340px; /* Esquerda, Centro, Direita */
+    gap: 15px;
+    padding: 15px;
+    flex: 1;
+    height: calc(100vh - 75px); /* Ocupa toda a tela descontando o cabeçalho */
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   ESTILO COMUM PARA OS PAINÉIS LATERAIS
+   ========================================================================== */
+.sidebar-controls, .sidebar-didactic {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 18px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Cria barra de rolagem interna se o texto crescer */
+}
+
+.sidebar-controls h2, .sidebar-didactic h2 {
+    font-size: 1.15rem;
+    color: #0f172a;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Blocos de agrupamento internos */
+.control-group {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+.control-group h3 {
+    font-size: 0.9rem;
+    color: #334155;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 6px;
+    line-height: 1.3;
+}
+
+/* ==========================================================================
+   ELEMENTOS DE INTERFACE (Botões, Inputs e Listas)
+   ========================================================================== */
+.btn-primary {
+    width: 100%;
+    background-color: #0ea5e9;
+    color: #ffffff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+    background-color: #0284c7;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+#search-input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#search-input:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
+.filter-options {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 0.8rem;
+    color: #475569;
+}
+
+.filter-options label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+/* Lista de seleção dos 200 elementos */
+#select-molecule {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 4px;
+    font-size: 0.9rem;
+    background-color: #ffffff;
+    outline: none;
+    color: #334155;
+}
+
+#select-molecule option {
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#select-molecule option:checked {
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+
+/* Caixas de seleção estilo PhET */
+.sidebar-controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: #334155;
+}
+
+.sidebar-controls label input[type="checkbox"] {
+    accent-color: #0ea5e9; /* Muda a cor interna do checkbox */
+    width: 15px;
+    height: 15px;
+}
+
+/* ==========================================================================
+   ÁREA CENTRAL: VISUALIZADOR 3D FLUIDO
+   ========================================================================== */
+.visualizer-container {
+    background-color: #0f172a; /* Fundo escuro estilo laboratório */
+    border-radius: 8px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: inset 0 4px 10px rgba(0,0,0,0.3);
+}
+
+#mol-3d-viewer {
+    width: 100%;
+    flex: 1;
+    position: relative;
+    min-height: 400px;
+}
+
+/* Painel flutuante de controle de estilo */
+.viewer-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    background-color: rgba(15, 23, 42, 0.85);
+    padding: 6px 12px;
+    border-radius: 30px;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.viewer-controls button {
+    background-color: #334155;
+    color: #ffffff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.viewer-controls button:hover {
+    background-color: #0ea5e9;
+}
+
+/* ==========================================================================
+   PAINEL DIDÁTICO E CONTEXTUALIZADO (Direita)
+   ========================================================================== */
+#info-card p {
+    font-size: 0.88rem;
+    margin-bottom: 10px;
+    color: #334155;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #f1f5f9;
+    padding-bottom: 4px;
+}
+
+#info-card p strong {
+    color: #0f172a;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-color: #e2e8f0;
+    margin: 16px 0;
+}
+
+#info-card h4 {
+    font-size: 0.9rem;
+    color: #0f172a;
+    margin-bottom: 6px;
+}
+
+.didactic-text {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: #475569;
+    background-color: #f8fafc;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 4px solid #0ea5e9; /* Detalhe azul na lateral do bloco */
+}
+
+/* ==========================================================================
+   RESPONSIVIDADE (Telas menores / Celulares)
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .app-container {
+        grid-template-columns: 1fr; /* Muda para uma coluna empilhada */
+        height: auto;
+        overflow-y: auto;
+    }
+    
+    .sidebar-controls, .sidebar-didactic {
+        height: auto;
+        max-height: none;
+    }
+    
+    .visualizer-container {
+        height: 450px; /* Fixa uma altura boa para o 3D no celular */
+    }
+}
