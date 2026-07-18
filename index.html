@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador Molecular STEM - UniLicungo</title>
+    <!-- Favicon do Tubo de Ensaio -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230ea5e9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' transform='rotate(30)'%3E%3Cpath d='M9 2h6' stroke='%23fff'/%3E%3Cpath d='M10 2v14a2 2 0 0 0 4 0V2' stroke='%23fff'/%3E%3Cpath d='M10 10v6a2 2 0 0 0 4 0v-6z' fill='%230ea5e9' stroke='none'/%3E%3Ccircle cx='12' cy='8' r='1' fill='%230ea5e9' stroke='none'/%3E%3C/svg%3E">
     <!-- Link para o nosso arquivo de estilo visual -->
     <link rel="stylesheet" href="css/estilo.css">
     <!-- Importando a biblioteca 3Dmol.js de forma gratuita para renderização fluida -->
@@ -13,7 +15,17 @@
 
     <!-- Cabeçalho do Aplicativo (Contexto STEM Moçambique) -->
     <header class="app-header">
-        <h1>Simulador de Geometria Molecular e Polaridade</h1>
+        <div class="header-content">
+            <!-- Ícone do Tubo de Ensaio Inclinado -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tube-icon">
+                <path d="M9 2h6" stroke="#ffffff"/>
+                <path d="M10 2v14a2 2 0 0 0 4 0V2" stroke="#ffffff"/>
+                <path d="M10 12v4a2 2 0 0 0 4 0v-4z" fill="#0ea5e9" stroke="none" />
+                <circle cx="11.5" cy="9" r="1" fill="#0ea5e9" stroke="none" />
+                <circle cx="12.5" cy="6" r="0.8" fill="#0ea5e9" stroke="none" />
+            </svg>
+            <h1>Simulador de Geometria Molecular e Polaridade</h1>
+        </div>
         <p>Abordagem STEM para o Ensino de Química | Universidade Licungo</p>
     </header>
 
@@ -36,9 +48,13 @@
                 <h3>🔍 Biblioteca de Compostos</h3>
                 <input type="text" id="search-input" placeholder="Ex: H2O, Metano...">
                 <div class="filter-options">
-                    <label><input type="radio" name="tipo-composto" value="todos" checked> Todos</label>
-                    <label><input type="radio" name="tipo-composto" value="Inorgânico"> Inorgânicos</label>
-                    <label><input type="radio" name="tipo-composto" value="Orgânico"> Orgânicos</label>
+                    <button class="btn-filtro active" data-tipo="Todos">Todas</button>
+                    <button class="btn-filtro" data-tipo="Orgânico">Orgânicos</button>
+                    <button class="btn-filtro" data-tipo="Inorgânico">Inorgânicos</button>
+
+                    <!-- Botões novos ajustados à tua nomenclatura -->
+                    <button class="btn-filtro" data-tipo="Iónico">Substâncias Iónicas</button>
+                    <button class="btn-filtro" data-tipo="Elementar">Substâncias Elementares</button>
                 </div>
                 <select id="select-molecule" size="5">
                     <!-- As opções de moléculas serão injetadas aqui pelo dados.js -->
@@ -95,6 +111,7 @@
 
     <!-- IMPORTAÇÃO DOS NOSSOS SCRIPTS LOCAIS (A ordem importa!) -->
     <!-- Primeiro carregamos os dados, depois o motor 3D, por fim a lógica do app -->
+    <script src="https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js"></script>
     <script src="js/visualizador.js"></script>
     <script src="js/app.js"></script>
 </body>
