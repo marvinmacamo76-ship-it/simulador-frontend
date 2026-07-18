@@ -112,6 +112,19 @@ function configurarEventosUI() {
     document.getElementById("btn-camera").addEventListener("click", () => {
         alert("Simulação de Pipeline Ativada:\n1. OSRA processará a foto.\n2. OpenBabel converterá para 3D.\n3. RDKit otimizará a geometria.");
     });
+    // ⚡ ESCUTADORES PARA AS OPÇÕES VISUAIS DINÂMICAS (PhET Style)
+    const chkAngles = document.getElementById("chk-angles");
+    const chkLonepairs = document.getElementById("chk-lonepairs");
+    const chkArrows = document.getElementById("chk-arrows");
+
+    [chkAngles, chkLonepairs, chkArrows].forEach(chk => {
+        if (chk) {
+            chk.addEventListener("change", () => {
+                // Redesenha a molécula atual aplicando os novos filtros visuais
+                if (moleculaAtiva) carregarMoleculaNoPainel3D(moleculaAtiva);
+            });
+        }
+    });
 }
 
 /**

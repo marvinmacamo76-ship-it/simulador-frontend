@@ -74,28 +74,71 @@ function carregarMoleculaNoPainel3D(molecula, estilo = estiloAtual) {
         });
     }
 
-    // 🏷️ NOVO: Adiciona etiquetas flutuantes com o símbolo químico em cada átomo
+    // 1. 🏷️ Etiquetas dos Átomos (Sempre visíveis para orientação)
     try {
         molecula.modelo3D.atoms.forEach(at => {
             visualizador3D.addLabel(at.elem, {
-                position: { x: at.x + 0.3, y: at.y + 0.3, z: at.z },
-                backgroundColor: 'rgba(15, 23, 42, 0.7)', // Fundo escuro elegante
-                fontSize: 14,
+                position: { x: at.x + 0.2, y: at.y + 0.2, z: at.z },
+                backgroundColor: 'rgba(15, 23, 42, 0.7)',
+                fontSize: 12,
                 fontColor: 'white',
                 alignment: 'center',
                 backgroundOpacity: 0.6,
                 useScreen: false,
-                inFront: false
+                inFront: true
             });
         });
     } catch (e) {
         console.warn("Aviso: Não foi possível carregar as etiquetas dos átomos.", e);
     }
 
+    // 2. 📐 Ângulos de Ligação (chk-angles)
+    const mostrarAngulos = document.getElementById("chk-angles")?.checked ?? true;
+    if (mostrarAngulos && molecula.angulo) {
+        const centro = molecula.modelo3D.atoms[0]; // O primeiro átomo da lista é o central
+        visualizador3D.addLabel(molecula.angulo, {
+            position: { x: centro.x, y: centro.y - 0.4, z: centro.z + 0.4 },
+            backgroundColor: '#0ea5e9', // Azul vivo do teu cabeçalho CSS
+            fontSize: 13,
+            fontColor: 'white',
+            backgroundOpacity: 0.9,
+            useScreen: false,
+            inFront: true
+        });
+    }
+
+    // 3. ⚛️ Pares de Elétrons Isolados (chk-lonepairs)
+    const mostrarParesIsolados = document.getElementById("chk-lonepairs")?.checked ?? true;
+    if (mostrarParesIsolados && molecula.paresIsolados > 0) {
+        const centro = molecula.modelo3D.atoms[0];
+        // Adiciona pequenas esferas roxas para representar visualmente os pares isolados (PhET style!)
+        for (let i = 0; i < molecula.paresIsolados; i++) {
+            const offsetX = (i === 0 ? 0.45 : -0.45);
+            visualizador3D.addSphere({
+                center: { x: centro.x + offsetX, y: centro.y, z: centro.z + 0.5 },
+                radius: 0.16,
+                color: '#a855f7' // Roxo elegante para os pares não-ligantes
+            });
+        }
+    }
+
+    // 4. ➡️ Vetores de Polaridade / Dipolo (chk-arrows)
+    const mostrarSetas = document.getElementById("chk-arrows")?.checked ?? true;
+    if (mostrarSetas && molecula.polaridade === "Polar") {
+        const centro = molecula.modelo3D.atoms[0];
+        visualizador3D.addArrow({
+            start: { x: centro.x, y: centro.y - 0.8, z: centro.z },
+            end: { x: centro.x, y: centro.y + 0.8, z: centro.z },
+            radius: 0.07,
+            color: '#ef4444', // Seta vermelha indicando o vetor de dipolo
+            clickable: false
+        });
+    }
+
     try { visualizador3D.resize(); } catch (e) {}
     visualizador3D.zoomTo();
     
-    // 🔄 NOVO: Ativa a rotação automática suave no espaço tridimensional
+    // 🔄 Rotação Automática Ativa por Padrão
     try { 
         visualizador3D.spin("y", 1); 
     } catch(e) {
