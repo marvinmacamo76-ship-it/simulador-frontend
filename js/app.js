@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // ALERTA: Altera 'http://localhost:3000' para o URL do teu Render quando estiver online!
-                const resposta = await fetch('http://localhost:3000/api/processar-camera', {
+                const resposta = await fetch('https://simulador-backend-y7up.onrender.com/api/processar-camera', {
                     method: 'POST',
                     body: formData
                 });
@@ -250,11 +250,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (dados.sucesso) {
                     console.log("SMILES detetado:", dados.smiles);
-                    // Certifica-te de que a função abaixo existe no teu js/visualizador.js
-                    if (typeof renderizarMolecula3D === "function") {
-                        renderizarMolecula3D(dados.dadosEstrutura3D);
-                    } else if (window.renderizarMolecula3D) {
-                        window.renderizarMolecula3D(dados.dadosEstrutura3D);
+                    if (typeof carregarMoleculaNoPainel3D === "function") {
+                        carregarMoleculaNoPainel3D(dados.dadosEstrutura3D);
+                    } else if (window.carregarMoleculaNoPainel3D) {
+                        window.carregarMoleculaNoPainel3D(dados.dadosEstrutura3D);
                     }
                     modalOpcoes.style.display = 'none'; // Fecha o modal após o sucesso
                 } else {
@@ -278,7 +277,32 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!textoDigitado) return alert("Por favor, digite uma fórmula ou código SMILES.");
 
             console.log("A enviar texto para o processador:", textoDigitado);
-            // Aqui podes ligar à tua rota que processa texto puro do formulário
+            statusIa.style.display = 'block';
+            try {
+                const resposta = await fetch('https://simulador-backend-y7up.onrender.com/api/processar-texto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto: textoDigitado })
+                });
+                const dados = await resposta.json();
+                
+                if (dados.sucesso) {
+                    if (typeof carregarMoleculaNoPainel3D === "function") {
+                        carregarMoleculaNoPainel3D(dados.dadosEstrutura3D);
+                    } else if (window.carregarMoleculaNoPainel3D) {
+                        window.carregarMoleculaNoPainel3D(dados.dadosEstrutura3D);
+                    }
+                    modalOpcoes.style.display = 'none';
+                    zonaTextoMolecula.style.display = 'none';
+                } else {
+                    alert(dados.error || "Erro ao processar o texto.");
+                }
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro ao conectar com o servidor backend.");
+            } finally {
+                statusIa.style.display = 'none';
+            }
         });
     }
 });
