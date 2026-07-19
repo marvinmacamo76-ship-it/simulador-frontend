@@ -420,30 +420,46 @@ async function buscarDados3DPubChem(cid) {
     }
 }
 
-// 4. Gemini API Helper
+// 4. Gemini API Helper (Com Fallback para a Wikipedia)
 async function gerarExplicacaoIA(nomeOuFormula) {
-    if (!geminiApiKey) return "Para ler a explicação baseada em Atkins e Glinka, configure a chave da API Gemini no painel de controlo.";
-    
-    const prompt = `Aja como um professor universitário de Química. Explique didaticamente a molécula/composto "${nomeOuFormula}". Aborde a sua estrutura, geometria, propriedades e ligações usando como referência as obras "Físico-Química" de Atkins e "Química Geral" de Glinka. Inclua um parágrafo de aplicação ou contextualização industrial. Responda num texto limpo e direto, sem formatação exagerada.`;
-    
-    try {
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
+    // Se houver chave Gemini, usamos a IA avançada
+    if (geminiApiKey) {
+        const prompt = `Aja como um professor universitário de Química. Explique didaticamente a molécula/composto "${nomeOuFormula}". Aborde a sua estrutura, geometria, propriedades e ligações usando como referência as obras "Físico-Química" de Atkins e "Química Geral" de Glinka. Inclua um parágrafo de aplicação ou contextualização industrial. Responda num texto limpo e direto, sem formatação exagerada.`;
         
-        const dados = await resp.json();
-        if(dados.candidates && dados.candidates.length > 0) {
-            return dados.candidates[0].content.parts[0].text;
+        try {
+            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+            
+            const dados = await resp.json();
+            if(dados.candidates && dados.candidates.length > 0) {
+                return dados.candidates[0].content.parts[0].text;
+            }
+        } catch(e) {
+            console.error("Erro ao contactar a IA Gemini:", e);
         }
-        return "Não foi possível gerar a explicação com a IA.";
-    } catch(e) {
-        console.error(e);
-        return "Erro ao contactar a IA.";
     }
+    
+    // FALLBACK: Se não houver chave ou a IA falhar, usamos a Wikipédia gratuitamente!
+    try {
+        console.log("A procurar informações na Wikipédia para:", nomeOuFormula);
+        const wikiResp = await fetch(`https://pt.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(nomeOuFormula)}&format=json&origin=*`);
+        const wikiData = await wikiResp.json();
+        const pages = wikiData.query.pages;
+        const pageId = Object.keys(pages)[0];
+        
+        if (pageId !== "-1" && pages[pageId].extract) {
+            return `Fonte: Wikipédia.\n\n${pages[pageId].extract}\n\n(Para uma explicação didática baseada em Atkins e Glinka, configura a chave da API Gemini no painel.)`;
+        }
+    } catch(e) {
+        console.error("Erro ao contactar a Wikipédia:", e);
+    }
+
+    return "Não foi possível gerar a explicação. Adicione uma chave API do Gemini nas configurações ou verifique a sua ligação à internet.";
 }
 
 // 5. Salvar Nova Molécula no Backend
