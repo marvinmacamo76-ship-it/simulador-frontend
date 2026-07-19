@@ -48,7 +48,7 @@ function carregarMoleculaNoPainel3D(molecula, estilo = estiloAtual) {
         // aguarda o motor terminar de iniciar antes de renderizar
         return requestAnimationFrame(() => carregarMoleculaNoPainel3D(molecula, estilo));
     }
-    if (!molecula || !molecula.modelo3D || !molecula.modelo3D.atoms) {
+    if (!molecula || (!molecula.sdfText && (!molecula.modelo3D || !molecula.modelo3D.atoms))) {
         console.warn("Dados 3D ausentes para a molécula.");
         return;
     }
@@ -57,10 +57,16 @@ function carregarMoleculaNoPainel3D(molecula, estilo = estiloAtual) {
 
     visualizador3D.clear();
 
-    // Carrega via XYZ para que as ligações sejam perceptíveis automaticamente
-    const xyz = moleculaParaXYZ(molecula);
-    const model = visualizador3D.addModel(xyz, 'xyz');
-    // Garante ligações mesmo quando o parser XYZ não as inferir
+    // Suporta carregamento direto de SDF (ex: do PubChem ou backend) ou via XYZ local
+    let model;
+    if (molecula.sdfText) {
+        model = visualizador3D.addModel(molecula.sdfText, 'sdf');
+    } else {
+        const xyz = moleculaParaXYZ(molecula);
+        model = visualizador3D.addModel(xyz, 'xyz');
+    }
+    
+    // Garante ligações mesmo quando o parser não as inferir
     try { if (model && typeof model.assignBonds === 'function') model.assignBonds(); } catch (e) {}
 
     if (estiloAtual === 'ball') {
@@ -76,25 +82,27 @@ function carregarMoleculaNoPainel3D(molecula, estilo = estiloAtual) {
 
     // 1. 🏷️ Etiquetas dos Átomos (Sempre visíveis para orientação)
     try {
-        molecula.modelo3D.atoms.forEach(at => {
-            visualizador3D.addLabel(at.elem, {
-                position: { x: at.x + 0.2, y: at.y + 0.2, z: at.z },
-                backgroundColor: 'rgba(15, 23, 42, 0.7)',
-                fontSize: 12,
-                fontColor: 'white',
-                alignment: 'center',
-                backgroundOpacity: 0.6,
-                useScreen: false,
-                inFront: true
+        if (molecula.modelo3D && molecula.modelo3D.atoms) {
+            molecula.modelo3D.atoms.forEach(at => {
+                visualizador3D.addLabel(at.elem, {
+                    position: { x: at.x + 0.2, y: at.y + 0.2, z: at.z },
+                    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+                    fontSize: 12,
+                    fontColor: 'white',
+                    alignment: 'center',
+                    backgroundOpacity: 0.6,
+                    useScreen: false,
+                    inFront: true
+                });
             });
-        });
+        }
     } catch (e) {
         console.warn("Aviso: Não foi possível carregar as etiquetas dos átomos.", e);
     }
 
     // 2. 📐 Ângulos de Ligação (chk-angles)
     const mostrarAngulos = document.getElementById("chk-angles")?.checked ?? true;
-    if (mostrarAngulos && molecula.angulo) {
+    if (mostrarAngulos && molecula.angulo && molecula.modelo3D && molecula.modelo3D.atoms) {
         const centro = molecula.modelo3D.atoms[0]; // O primeiro átomo da lista é o central
         visualizador3D.addLabel(molecula.angulo, {
             position: { x: centro.x, y: centro.y - 0.4, z: centro.z + 0.4 },
@@ -109,7 +117,7 @@ function carregarMoleculaNoPainel3D(molecula, estilo = estiloAtual) {
 
     // 3. ⚛️ Pares de Elétrons Isolados (chk-lonepairs)
     const mostrarParesIsolados = document.getElementById("chk-lonepairs")?.checked ?? true;
-    if (mostrarParesIsolados && molecula.paresIsolados > 0) {
+    if (mostrarParesIsolados && molecula.paresIsolados > 0 && molecula.modelo3D && molecula.modelo3D.atoms) {
         const centro = molecula.modelo3D.atoms[0];
         // Adiciona pequenas esferas roxas para representar visualmente os pares isolados (PhET style!)
         for (let i = 0; i < molecula.paresIsolados; i++) {
@@ -124,7 +132,7 @@ function carregarMoleculaNoPainel3D(molecula, estilo = estiloAtual) {
 
     // 4. ➡️ Vetores de Polaridade / Dipolo (chk-arrows)
     const mostrarSetas = document.getElementById("chk-arrows")?.checked ?? true;
-    if (mostrarSetas && molecula.polaridade === "Polar") {
+    if (mostrarSetas && molecula.polaridade === "Polar" && molecula.modelo3D && molecula.modelo3D.atoms) {
         const centro = molecula.modelo3D.atoms[0];
         visualizador3D.addArrow({
             start: { x: centro.x, y: centro.y - 0.8, z: centro.z },

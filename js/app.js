@@ -271,38 +271,205 @@ document.addEventListener('DOMContentLoaded', () => {
         inputFotoDireta.addEventListener('change', (e) => enviarImagemBackend(e.target.files[0]));
         inputGaleria.addEventListener('change', (e) => enviarImagemBackend(e.target.files[0]));
 
-        // --- LÓGICA DA OPÇÃO 3 (ENVIAR TEXTO DIGITADO) ---
+        // --- LÓGICA DA OPÇÃO 3 (ENVIAR TEXTO DIGITADO COM PUBCHEM + GEMINI) ---
         document.getElementById('btn-enviar-texto').addEventListener('click', async () => {
             const textoDigitado = document.getElementById('input-texto-smiles').value;
-            if (!textoDigitado) return alert("Por favor, digite uma fórmula ou código SMILES.");
+            if (!textoDigitado) return alert("Por favor, digite uma fórmula, nome ou código SMILES.");
 
-            console.log("A enviar texto para o processador:", textoDigitado);
             statusIa.style.display = 'block';
+            statusIa.innerText = "⏳ A procurar no PubChem...";
             try {
-                const resposta = await fetch('https://simulador-backend-y7up.onrender.com/api/processar-texto', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ texto: textoDigitado })
-                });
-                const dados = await resposta.json();
-                
-                if (dados.sucesso) {
-                    if (typeof carregarMoleculaNoPainel3D === "function") {
-                        carregarMoleculaNoPainel3D(dados.dadosEstrutura3D);
-                    } else if (window.carregarMoleculaNoPainel3D) {
-                        window.carregarMoleculaNoPainel3D(dados.dadosEstrutura3D);
-                    }
-                    modalOpcoes.style.display = 'none';
-                    zonaTextoMolecula.style.display = 'none';
-                } else {
-                    alert(dados.error || "Erro ao processar o texto.");
+                // 1. Validar e Buscar no PubChem
+                const pubchemData = await buscarMoleculaPubChem(textoDigitado);
+                if (!pubchemData) {
+                    alert("A molécula não foi encontrada ou é impossível/inválida segundo a base de dados química.");
+                    statusIa.style.display = 'none';
+                    return;
                 }
+
+                // 2. Extrair o formato 3D e o Dipolo
+                statusIa.innerText = "⏳ A gerar formato 3D...";
+                const dados3D = await buscarDados3DPubChem(pubchemData.cid);
+                
+                // 3. Obter Explicação Didática da IA
+                statusIa.innerText = "⏳ A gerar explicação didática (Glinka/Atkins)...";
+                const explicacaoDidatica = await gerarExplicacaoIA(pubchemData.smiles || textoDigitado);
+
+                // 4. Construir Objeto da Nova Molécula
+                const novaMolecula = {
+                    id: pubchemData.cid.toString(),
+                    nome: textoDigitado.charAt(0).toUpperCase() + textoDigitado.slice(1),
+                    formula: pubchemData.formula,
+                    peso: pubchemData.peso,
+                    polaridade: dados3D.dipole !== "Desconhecido" ? "Polar" : "Apolar",
+                    dipolo: dados3D.dipole,
+                    tipo: "Indeterminado",
+                    geometria: "Automática",
+                    justificativaVSEPR: explicacaoDidatica,
+                    contextoMocambique: "Dados analisados automaticamente pelo sistema integrado.",
+                    sdfText: dados3D.sdfText
+                };
+
+                // Mostrar na interface
+                if (typeof carregarMoleculaNoPainel3D === "function") {
+                    carregarMoleculaNoPainel3D(novaMolecula);
+                }
+                
+                // Atualizar o painel didático
+                moleculaAtiva = novaMolecula;
+                document.getElementById("info-nome").textContent = novaMolecula.nome;
+                document.getElementById("info-formula").textContent = novaMolecula.formula;
+                document.getElementById("info-tipo").textContent = novaMolecula.tipo;
+                document.getElementById("info-geometria").textContent = novaMolecula.geometria;
+                document.getElementById("info-polaridade").textContent = `${novaMolecula.polaridade} (Momento Dipolar: ${novaMolecula.dipolo})`;
+                document.getElementById("info-detalhes").textContent = novaMolecula.justificativaVSEPR;
+                document.getElementById("info-mocambique").textContent = novaMolecula.contextoMocambique;
+
+                modalOpcoes.style.display = 'none';
+                zonaTextoMolecula.style.display = 'none';
+                
+                // 5. Salvar silenciosamente no backend do Render
+                salvarNovaMolecula(novaMolecula);
+
             } catch (erro) {
                 console.error(erro);
-                alert("Erro ao conectar com o servidor backend.");
+                alert("Erro durante a geração inteligente da molécula.");
             } finally {
                 statusIa.style.display = 'none';
             }
         });
     }
 });
+
+// ==============================================================================
+// 1. Controle da IA
+let geminiApiKey = localStorage.getItem("geminiApiKey") || "";
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnConfigIa = document.getElementById('btn-config-ia');
+    const modalIa = document.getElementById('modal-ia');
+    const inputGemini = document.getElementById('input-gemini-key');
+    
+    if(btnConfigIa && modalIa) {
+        btnConfigIa.addEventListener('click', () => {
+            inputGemini.value = geminiApiKey;
+            modalIa.style.display = 'block';
+        });
+        
+        document.getElementById('btn-fechar-ia').addEventListener('click', () => {
+            modalIa.style.display = 'none';
+        });
+        
+        document.getElementById('btn-salvar-ia').addEventListener('click', () => {
+            geminiApiKey = inputGemini.value.trim();
+            localStorage.setItem("geminiApiKey", geminiApiKey);
+            modalIa.style.display = 'none';
+            alert("Chave IA (Gemini) guardada com sucesso!");
+        });
+    }
+});
+
+// 2. PubChem API Helper
+async function buscarMoleculaPubChem(termo) {
+    try {
+        let resposta = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(termo)}/property/CanonicalSMILES,MolecularFormula,MolecularWeight/JSON`);
+        if (!resposta.ok) {
+            resposta = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${encodeURIComponent(termo)}/property/CanonicalSMILES,MolecularFormula,MolecularWeight/JSON`);
+        }
+        
+        if (!resposta.ok) throw new Error("Composto não encontrado no PubChem.");
+        
+        const dados = await resposta.json();
+        const cid = dados.PropertyTable.Properties[0].CID;
+        const smiles = dados.PropertyTable.Properties[0].CanonicalSMILES;
+        const formula = dados.PropertyTable.Properties[0].MolecularFormula;
+        const peso = dados.PropertyTable.Properties[0].MolecularWeight;
+        
+        return { cid, smiles, formula, peso };
+    } catch(e) {
+        console.error(e);
+        return null;
+    }
+}
+
+// 3. PubChem 3D e Dipolo
+async function buscarDados3DPubChem(cid) {
+    try {
+        const respSDF = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/record/SDF/?record_type=3d`);
+        if (!respSDF.ok) throw new Error("Sem estrutura 3D");
+        const sdfText = await respSDF.text();
+        
+        let dipole = "Desconhecido";
+        try {
+            const respJson = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON`);
+            if(respJson.ok) {
+                const dataView = await respJson.json();
+                const dipoleSection = dataView.Record.Section.find(s => s.TOCHeading === "Chemical and Physical Properties")
+                    ?.Section.find(s => s.TOCHeading === "Experimental Properties")
+                    ?.Section.find(s => s.TOCHeading === "Dipole Moment");
+                if(dipoleSection && dipoleSection.Information[0].Value.StringWithMarkup[0].String) {
+                    dipole = dipoleSection.Information[0].Value.StringWithMarkup[0].String;
+                }
+            }
+        } catch(e) {}
+
+        return { sdfText, dipole };
+    } catch(e) {
+        console.error(e);
+        return { sdfText: null, dipole: "N/A" };
+    }
+}
+
+// 4. Gemini API Helper
+async function gerarExplicacaoIA(nomeOuFormula) {
+    if (!geminiApiKey) return "Para ler a explicação baseada em Atkins e Glinka, configure a chave da API Gemini no painel de controlo.";
+    
+    const prompt = `Aja como um professor universitário de Química. Explique didaticamente a molécula/composto "${nomeOuFormula}". Aborde a sua estrutura, geometria, propriedades e ligações usando como referência as obras "Físico-Química" de Atkins e "Química Geral" de Glinka. Inclua um parágrafo de aplicação ou contextualização industrial. Responda num texto limpo e direto, sem formatação exagerada.`;
+    
+    try {
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+        
+        const dados = await resp.json();
+        if(dados.candidates && dados.candidates.length > 0) {
+            return dados.candidates[0].content.parts[0].text;
+        }
+        return "Não foi possível gerar a explicação com a IA.";
+    } catch(e) {
+        console.error(e);
+        return "Erro ao contactar a IA.";
+    }
+}
+
+// 5. Salvar Nova Molécula no Backend
+async function salvarNovaMolecula(molObj) {
+    try {
+        await fetch('https://simulador-backend-y7up.onrender.com/api/moleculas', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(molObj)
+        });
+        // Recarregar a lista (opcional, só se quiser que apareça logo no dropdown)
+        const respList = await fetch('https://simulador-backend-y7up.onrender.com/api/moleculas');
+        if(respList.ok) {
+            bibliotecaMoleculas = await respList.json();
+            const select = document.getElementById("select-molecule");
+            if (select) {
+                select.innerHTML = '<option value="" disabled selected>Escolha um composto na lista ou pesquise...</option>';
+                bibliotecaMoleculas.forEach(mol => {
+                    const option = document.createElement("option");
+                    option.value = mol.id;
+                    option.textContent = `${mol.formula} - ${mol.nome}`;
+                    select.appendChild(option);
+                });
+            }
+        }
+    } catch(e) {
+        console.error("Erro ao salvar:", e);
+    }
+}
