@@ -38,9 +38,9 @@
             
             <!-- Integração com a Câmera (Ponto de partida para o pipeline do OSRA) -->
             <div class="control-group">
-                <h3>📷 Captura de Estrutura</h3>
-                <button id="btn-camera" class="btn-primary">Tirar Foto de Desenho 2D</button>
-                <p class="hint">Tire foto de uma estrutura para processamento via OSRA/RDKit.</p>
+                <h3>📷 Inserir Composto</h3>
+                <button id="btn-principal-camera" class="btn-primary">Inserir Molécula (Foto/Ficheiro/Texto)</button>
+                <p class="hint">Escolha entre tirar foto, carregar uma imagem ou digitar a estrutura.</p>
             </div>
 
             <!-- Busca e Filtros para os 200 Compostos -->
@@ -108,6 +108,32 @@
         </section>
 
     </main>
+    <!-- ==================== MENU POP-UP DE OPÇÕES (MODAL) ==================== -->
+    <div id="modal-opcoes" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000; color: white; text-align: center; font-family: sans-serif; min-width: 280px;">
+        <h3 style="margin-top: 0;">Como deseja inserir a molécula?</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+            <button id="opt-tirar-foto" style="padding: 10px; cursor: pointer; background: #0ea5e9; color: white; border: none; border-radius: 4px; font-weight: bold;">📷 Tirar Foto Agora</button>
+            <button id="opt-carregar-ficheiro" style="padding: 10px; cursor: pointer; background: #0ea5e9; color: white; border: none; border-radius: 4px; font-weight: bold;">📁 Escolher da Galeria / Ficheiros</button>
+            <button id="opt-escrever-texto" style="padding: 10px; cursor: pointer; background: #334155; color: white; border: none; border-radius: 4px; font-weight: bold;">✍️ Escrever Nome ou SMILES</button>
+        </div>
+        <button id="btn-fechar-modal" style="margin-top: 15px; background: #ff4d4d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Cancelar</button>
+
+        <!-- Área de texto interna para a Opção 3 (Aparece dentro do modal se clicar em Escrever) -->
+        <div id="zona-texto-molecula" style="display: none; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;">
+            <input type="text" id="input-texto-smiles" placeholder="Digite o SMILES (ex: H2O)" style="width: 80%; padding: 8px; border-radius: 4px; border: 1px solid #666; background: #333; color: white;">
+            <button id="btn-enviar-texto" style="padding: 8px 12px; margin-left: 5px; background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Gerar 3D</button>
+        </div>
+
+        <!-- Indicador visual de carregamento da Inteligência Artificial -->
+        <div id="status-ia" style="display: none; color: #22c55e; margin-top: 15px; font-weight: bold; animation: blink 1s infinite;">
+            ⏳ A processar com DECIMER IA...
+        </div>
+    </div>
+
+    <!-- Inputs invisíveis nativos para interagir com o sistema operativo -->
+    <input type="file" id="input-foto-direta" accept="image/*" capture="environment" style="display: none;">
+    <input type="file" id="input-galeria" accept="image/*" style="display: none;">
+    <!-- ======================================================================= -->
 
     <!-- IMPORTAÇÃO DOS NOSSOS SCRIPTS LOCAIS (A ordem importa!) -->
     <!-- Primeiro carregamos os dados, depois o motor 3D, por fim a lógica do app -->
