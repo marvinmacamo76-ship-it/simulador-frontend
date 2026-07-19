@@ -183,3 +183,102 @@ function executarFiltroCombinado() {
 
     renderizarListaMoleculas(resultadoFiltrado);
 }
+// =======================================================================
+// COLOQUE ESTE BLOCO NO FINAL DO SEU FILE JS/APP.JS
+// LÓGICA DO POP-UP DA CÂMARA / FICHEIROS / TEXTO
+// =======================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnPrincipal = document.getElementById('btn-principal-camera');
+    const modalOpcoes = document.getElementById('modal-opcoes');
+    const btnFecharModal = document.getElementById('btn-fechar-modal');
+
+    const optTirarFoto = document.getElementById('opt-tirar-foto');
+    const optCarregarFicheiro = document.getElementById('opt-carregar-ficheiro');
+    const optEscreverTexto = document.getElementById('opt-escrever-texto');
+
+    const inputFotoDireta = document.getElementById('input-foto-direta');
+    const inputGaleria = document.getElementById('input-galeria');
+    const zonaTextoMolecula = document.getElementById('zona-texto-molecula');
+    const statusIa = document.getElementById('status-ia');
+
+    // Se o botão principal existir na página, ativa as configurações
+    if (btnPrincipal) {
+        // 1. Abrir o menu pop-up ao clicar no botão da barra lateral
+        btnPrincipal.addEventListener('click', () => {
+            modalOpcoes.style.display = 'block';
+            zonaTextoMolecula.style.display = 'none'; // Garante que a área de texto começa fechada
+        });
+
+        // 2. Fechar o menu pop-up ao clicar em Cancelar
+        btnFecharModal.addEventListener('click', () => {
+            modalOpcoes.style.display = 'none';
+        });
+
+        // 3. Opção 1: Clicar em Tirar Foto ativa o input da câmara
+        optTirarFoto.addEventListener('click', () => {
+            modalOpcoes.style.display = 'none';
+            inputFotoDireta.click();
+        });
+
+        // 4. Opção 2: Clicar em Carregar Ficheiro ativa a galeria
+        optCarregarFicheiro.addEventListener('click', () => {
+            modalOpcoes.style.display = 'none';
+            inputGaleria.click();
+        });
+
+        // 5. Opção 3: Clicar em Escrever Texto mostra a caixa de texto sem fechar o pop-up
+        optEscreverTexto.addEventListener('click', () => {
+            zonaTextoMolecula.style.display = 'block';
+        });
+
+        // --- FUNÇÃO PARA ENVIAR AS IMAGENS PARA O TEU BACKEND ---
+        async function enviarImagemBackend(ficheiro) {
+            if (!ficheiro) return;
+            statusIa.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('imagem', ficheiro);
+
+            try {
+                // ALERTA: Altera 'http://localhost:3000' para o URL do teu Render quando estiver online!
+                const resposta = await fetch('http://localhost:3000/api/processar-camera', {
+                    method: 'POST',
+                    body: formData
+                });
+                const dados = await resposta.json();
+
+                if (dados.sucesso) {
+                    console.log("SMILES detetado:", dados.smiles);
+                    // Certifica-te de que a função abaixo existe no teu js/visualizador.js
+                    if (typeof renderizarMolecula3D === "function") {
+                        renderizarMolecula3D(dados.dadosEstrutura3D);
+                    } else if (window.renderizarMolecula3D) {
+                        window.renderizarMolecula3D(dados.dadosEstrutura3D);
+                    }
+                    modalOpcoes.style.display = 'none'; // Fecha o modal após o sucesso
+                } else {
+                    alert(dados.error);
+                }
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro ao conectar com o servidor backend.");
+            } finally {
+                statusIa.style.display = 'none';
+            }
+        }
+
+        // Escutar quando o utilizador tira a foto ou escolhe da galeria
+        inputFotoDireta.addEventListener('change', (e) => enviarImagemBackend(e.target.files[0]));
+        inputGaleria.addEventListener('change', (e) => enviarImagemBackend(e.target.files[0]));
+
+        // --- LÓGICA DA OPÇÃO 3 (ENVIAR TEXTO DIGITADO) ---
+        document.getElementById('btn-enviar-texto').addEventListener('click', async () => {
+            const textoDigitado = document.getElementById('input-texto-smiles').value;
+            if (!textoDigitado) return alert("Por favor, digite uma fórmula ou código SMILES.");
+
+            console.log("A enviar texto para o processador:", textoDigitado);
+            // Aqui podes ligar à tua rota que processa texto puro do formulário
+        });
+    }
+});
