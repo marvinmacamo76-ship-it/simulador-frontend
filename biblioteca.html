@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca de Moléculas | STEM Licungo</title>
+    <link rel="stylesheet" href="css/biblioteca.css">
+</head>
+<body>
+
+    <!-- CABEÇALHO -->
+    <header class="bib-header">
+        <div class="bib-header-left">
+            <a href="index.html" class="btn-voltar">← Início</a>
+            <h1>📚 Biblioteca de <span>Moléculas</span></h1>
+        </div>
+        <span class="bib-stats" id="bib-stats">A carregar…</span>
+    </header>
+
+    <!-- BARRA DE PESQUISA -->
+    <div class="bib-search-bar">
+        <input
+            type="text"
+            id="input-pesquisa"
+            placeholder="🔍  Pesquisar por nome ou fórmula…"
+            autocomplete="off"
+        >
+    </div>
+
+    <!-- ABAS DE CATEGORIAS -->
+    <nav class="bib-tabs" id="bib-tabs">
+        <div class="bib-tab ativa" data-cat="todas">🌐 Todas <span class="badge" id="badge-todas">0</span></div>
+        <div class="bib-tab" data-cat="organicas">🌿 Orgânicas <span class="badge" id="badge-organicas">0</span></div>
+        <div class="bib-tab" data-cat="inorganicas">⚗️ Inorgânicas <span class="badge" id="badge-inorganicas">0</span></div>
+        <div class="bib-tab" data-cat="ionicas">⚡ Iônicas <span class="badge" id="badge-ionicas">0</span></div>
+        <div class="bib-tab" data-cat="elementares">🔵 Elementares <span class="badge" id="badge-elementares">0</span></div>
+        <div class="bib-tab" data-cat="complexas">🧬 Complexas <span class="badge" id="badge-complexas">0</span></div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="bib-main" id="bib-main">
+        <p style="color:#94a3b8; text-align:center; padding:40px;">A carregar biblioteca…</p>
+    </main>
+
+    <script>
+    // =========================================================================
+    // BIBLIOTECA.JS (inline) — Carrega e exibe moléculas do backend
+    // =========================================================================
+
+    const LABELS_CAT = {
+        organicas:   { label: 'Orgânica',   cls: 'badge-organica'   },
+        inorganicas: { label: 'Inorgânica', cls: 'badge-inorganica' },
+        ionicas:     { label: 'Iônica',     cls: 'badge-ionica'     },
+        elementares: { label: 'Elementar',  cls: 'badge-elementar'  },
+        complexas:   { label: 'Complexa',   cls: 'badge-complexa'   },
+    };
+
+    let DADOS = {}; // { organicas: [...], inorganicas: [...], ... }
+    let TODAS = []; // lista plana com campo .categoria
+    let categoriaAtiva = 'todas';
+    let termoPesquisa  = '';
+
+    // ---- Carrega dados do backend ----
+    async function carregarBiblioteca() {
+        try {
+            const res = await fetch('/api/biblioteca');
+            if (!res.ok) throw new Error('Falha ao carregar biblioteca.');
+            DADOS = await res.json();
+
+            // Cria lista plana
+            TODAS = [];
+            for (const [cat, lista] of Object.entries(DADOS)) {
+                lista.forEach(mol => TODAS.push({ ...mol, categoria: cat }));
+            }
+
+            // Atualiza badges
+            atualizarBadges();
+            renderizar();
+        } catch (err) {
+            document.getElementById('bib-main').innerHTML =
+                `<p style="color:#ef4444;text-align:center;padding:40px;">
+                    ⚠️ ${err.message}<br>
+                    <small>Certifique-se de que o servidor está a correr.</small>
+                </p>`;
+        }
+    }
+
+    function atualizarBadges() {
+        const total = TODAS.length;
+        document.getElementById('badge-todas').textContent = total;
+        document.getElementById('bib-stats').textContent = `${total} moléculas disponíveis`;
+
+        for (const cat of Object.keys(LABELS_CAT)) {
+            const count = (DADOS[cat] || []).length;
+            const badge = document.getElementById(`badge-${cat}`);
+            if (badge) badge.textContent = count;
+        }
+    }
+
+    // ---- Filtra e renderiza ----
+    function renderizar() {
+        const main = document.getElementById('bib-main');
+        const termo = termoPesquisa.toLowerCase();
+
+        // Decide lista base
+        let lista;
+        if (categoriaAtiva === 'todas') {
+            lista = TODAS;
+        } else {
+            lista = (DADOS[categoriaAtiva] || []).map(m => ({ ...m, categoria: categoriaAtiva }));
+        }
+
+        // Filtro de pesquisa
+        if (termo) {
+            lista = lista.filter(m =>
+                m.nome.toLowerCase().includes(termo) ||
+                m.formula.toLowerCase().includes(termo) ||
+                (m.descricao || '').toLowerCase().includes(termo)
+            );
+        }
+
+        if (lista.length === 0) {
+            main.innerHTML = `
+                <div class="bib-vazio">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <p>Nenhuma molécula encontrada para <strong>"${termoPesquisa}"</strong>.</p>
+                </div>`;
+            return;
+        }
+
+        // Se estiver em "todas", agrupa por categoria
+        if (categoriaAtiva === 'todas' && !termo) {
+            let html = '';
+            for (const [cat, mols] of Object.entries(DADOS)) {
+                if (!mols.length) continue;
+                const info = LABELS_CAT[cat];
+                html += `
+                    <div class="bib-categoria-titulo">
+                        ${info?.label || cat}
+                        <span style="font-weight:400;color:#94a3b8;">(${mols.length})</span>
+                    </div>
+                    <div class="bib-grid">
+                        ${mols.map(m => cartaoHTML({ ...m, categoria: cat })).join('')}
+                    </div>`;
+            }
+            main.innerHTML = html;
+        } else {
+            main.innerHTML = `<div class="bib-grid">${lista.map(cartaoHTML).join('')}</div>`;
+        }
+    }
+
+    function cartaoHTML(mol) {
+        const info = LABELS_CAT[mol.categoria] || { label: mol.categoria, cls: '' };
+        const url = `geometria.html?mol=${encodeURIComponent(mol.pubchem)}`;
+        return `
+            <div class="mol-card">
+                <div class="mol-card-top">
+                    <span class="mol-nome">${mol.nome}</span>
+                    <span class="mol-badge ${info.cls}">${info.label}</span>
+                </div>
+                <div class="mol-formula">${mol.formula}</div>
+                <div class="mol-descricao">${mol.descricao || ''}</div>
+                <div class="mol-card-footer">
+                    <a href="${url}" class="btn-visualizar">🔬 Visualizar em 3D</a>
+                </div>
+            </div>`;
+    }
+
+    // ---- Eventos das abas ----
+    document.getElementById('bib-tabs').addEventListener('click', function(e) {
+        const tab = e.target.closest('.bib-tab');
+        if (!tab) return;
+
+        document.querySelectorAll('.bib-tab').forEach(t => t.classList.remove('ativa'));
+        tab.classList.add('ativa');
+        categoriaAtiva = tab.dataset.cat;
+        renderizar();
+    });
+
+    // ---- Pesquisa ----
+    document.getElementById('input-pesquisa').addEventListener('input', function() {
+        termoPesquisa = this.value.trim();
+        // Ao pesquisar, mostra todas as categorias
+        if (termoPesquisa) {
+            document.querySelectorAll('.bib-tab').forEach(t => t.classList.remove('ativa'));
+            document.querySelector('[data-cat="todas"]').classList.add('ativa');
+            categoriaAtiva = 'todas';
+        }
+        renderizar();
+    });
+
+    // ---- Arranque ----
+    carregarBiblioteca();
+    </script>
+
+</body>
+</html>

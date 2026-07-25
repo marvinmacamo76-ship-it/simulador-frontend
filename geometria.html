@@ -3,117 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Construtor de Geometria Molecular | STEM Licungo</title>
-    
-    <!-- O seu CSS antigo que contém a estrutura dos painéis laterais -->
+    <title>Visualizador de Geometria Molecular | STEM Licungo</title>
     <link rel="stylesheet" href="css/estilo.css">
-    
     <style>
-        /* Estilo rápido para a barra superior e botão voltar nesta página */
+        /* ---- Barra de navegação ---- */
         .topo-navegacao {
             background: #1e293b;
             padding: 10px 20px;
             display: flex;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
             z-index: 100;
         }
+        .topo-esquerda { display: flex; align-items: center; gap: 12px; }
         .btn-voltar {
-            background-color: #3b82f6;
-            color: white;
+            background-color: #334155;
+            color: #cbd5e1;
             text-decoration: none;
-            padding: 8px 15px;
+            padding: 7px 14px;
             border-radius: 6px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex; align-items: center; gap: 6px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-voltar:hover { background-color: #475569; color: #f8fafc; }
+        .topo-titulo {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        .btn-biblioteca {
+            background-color: #0ea5e9;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex; align-items: center; gap: 6px;
             transition: background 0.2s;
         }
-        .btn-voltar:hover { background-color: #2563eb; }
-        
-        /* Ajuste do container para compensar a nova barra superior */
-        .app-container { height: calc(100vh - 55px); }
-        
-        /* Área onde o Scenery do PhET vai atuar */
-        #cenario-phet-container {
+        .btn-biblioteca:hover { background-color: #0284c7; }
+
+        /* ---- Layout ---- */
+        .app-container { height: calc(100vh - 50px); }
+
+        /* ---- Área do visualizador 3D ---- */
+        #viewer-container {
             width: 100%;
             height: 100%;
-            background-color: #ffffff; /* Fundo branco para a simulação */
+            background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
             position: relative;
             overflow: hidden;
+            border-radius: 0;
+        }
+
+        /* ---- Barra de estado ---- */
+        .status-bar {
+            display: none;
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            z-index: 50;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+        .status-carregando { background: rgba(14,165,233,0.92); color: #fff; }
+        .status-ok   { background: rgba(34,197,94,0.92);  color: #fff; }
+        .status-erro { background: rgba(239,68,68,0.92);  color: #fff; }
+
+        /* ---- Dica de interação ---- */
+        .dica-interacao {
+            position: absolute;
+            bottom: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.72rem;
+            color: rgba(148,163,184,0.7);
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 40;
+        }
+
+        /* ---- Painel de controlo ---- */
+        .control-group label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.85rem; color: #475569;
+            padding: 5px 0; cursor: pointer;
+        }
+        .control-group label input[type="checkbox"] {
+            accent-color: #0ea5e9;
+            width: 15px; height: 15px;
+        }
+
+        /* ---- Painel de informações (coluna direita) ---- */
+        #info-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+            word-break: break-word;
+        }
+        .info-linha {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 5px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.84rem;
+            gap: 8px;
+        }
+        .info-linha strong { color: #64748b; flex-shrink: 0; }
+        .info-valor { color: #0f172a; font-weight: 600; text-align: right; }
+        .info-polar  { color: #0ea5e9; }
+        .info-apolar { color: #22c55e; }
+
+        /* ---- Secção de literatura ---- */
+        .lit-secao {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .lit-secao h5 {
+            font-size: 0.82rem;
+            color: #334155;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .lit-secao p { font-size: 0.8rem; line-height: 1.45; color: #475569; margin-bottom: 6px; }
+        .lit-artigo {
+            padding: 8px 0;
+            border-bottom: 1px dashed #e2e8f0;
+            margin-bottom: 6px;
+        }
+        .lit-artigo:last-child { border-bottom: none; margin-bottom: 0; }
+        .lit-artigo strong { display: block; font-size: 0.8rem; color: #1e293b; margin-bottom: 3px; }
+        .lit-artigo p { font-size: 0.76rem; color: #64748b; margin: 4px 0; }
+        .lit-meta { font-size: 0.72rem; color: #94a3b8; }
+        .lit-link {
+            display: inline-block;
+            font-size: 0.75rem;
+            color: #0ea5e9;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .lit-link:hover { text-decoration: underline; }
+        .lit-loading { color: #94a3b8; font-size: 0.82rem; font-style: italic; }
+
+        /* ---- Responsividade ---- */
+        @media (max-width: 1024px) {
+            .app-container { height: auto; overflow-y: auto; }
+            #viewer-container { height: 420px; }
+            .topo-titulo { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <!-- BARRA SUPERIOR COM BOTÃO DE RETORNO -->
+    <!-- BARRA SUPERIOR -->
     <header class="topo-navegacao">
-        <a href="index.html" class="btn-voltar">
-            <span>←</span> Voltar ao Menu Inicial
-        </a>
+        <div class="topo-esquerda">
+            <a href="index.html" class="btn-voltar">← Início</a>
+            <span class="topo-titulo">Visualizador de Geometria Molecular</span>
+        </div>
+        <a href="biblioteca.html" class="btn-biblioteca">📚 Biblioteca de Moléculas</a>
     </header>
 
-    <!-- CONTEINER PRINCIPAL (Painéis laterais e área central) -->
+    <!-- LAYOUT PRINCIPAL (3 colunas) -->
     <main class="app-container">
-        
-        <!-- BARRA LATERAL ESQUERDA: Controles de Inserção -->
+
+        <!-- COLUNA ESQUERDA: Controles -->
         <section class="sidebar-controls">
-            <h2>Painel de Controle</h2>
-            
+            <h2>🔬 Painel de Controlo</h2>
+
+            <!-- Nova Molécula / Câmera -->
             <div class="control-group">
-                <h3>🔍 Inserir / Buscar Molécula</h3>
-                <input type="text" id="search-input" placeholder="Ex: H2O, Metano...">
-                <button id="btn-buscar-pubchem" class="btn-primary" style="margin-top: 10px;">Buscar e Construir</button>
-                <p class="hint">O sistema irá extrair a estrutura diretamente do PubChem.</p>
+                <h3>🔍 Nova Molécula</h3>
+                <p class="hint" style="margin-bottom:8px;">
+                    Escreva o nome (em inglês ou português) ou a fórmula química do composto.
+                </p>
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Ex: H2O, metano, caffeine…"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+                <button id="btn-buscar-pubchem" class="btn-primary" style="margin-top:10px;">
+                    ▶ Buscar e Visualizar
+                </button>
+                <p class="hint" style="margin-top:6px;">
+                    Estrutura 3D obtida automaticamente do <strong>PubChem</strong>.
+                </p>
             </div>
 
-            <!-- Opções Visuais do PhET -->
+            <!-- Opções de visualização -->
             <div class="control-group">
                 <h3>👁️ Opções de Visualização</h3>
-                <label><input type="checkbox" id="chk-angles" checked> Mostrar Ângulos de Ligação</label>
-                <label><input type="checkbox" id="chk-simbolos" checked> Mostrar Símbolos dos Elementos</label>
+                <label>
+                    <input type="checkbox" id="chk-simbolos" checked>
+                    Mostrar Símbolos dos Elementos
+                </label>
+                <label>
+                    <input type="checkbox" id="chk-angles" checked>
+                    Mostrar Ângulos de Ligação
+                </label>
+                <label>
+                    <input type="checkbox" id="chk-dipolo">
+                    Mostrar Vetor Dipolo (μ)
+                </label>
+            </div>
+
+            <!-- Dica de interação -->
+            <div class="control-group">
+                <h3>🖱️ Interação</h3>
+                <p class="hint">
+                    <strong>Arrastar espaço vazio</strong> → Roda a molécula<br>
+                    <strong>Arrastar sobre átomo</strong> → Move a molécula<br>
+                    <strong>Rolar rato</strong> → Zoom in / Zoom out
+                </p>
             </div>
         </section>
 
-        <!-- ÁREA CENTRAL: O Novo Visualizador PhET (Scenery + Dot + Axon) -->
+        <!-- COLUNA CENTRAL: Visualizador 3D -->
         <section class="visualizer-container">
-            <div id="cenario-phet-container">
-                <!-- O Canvas gerado pelo Scenery será injetado aqui via JavaScript -->
+            <div id="viewer-container">
+                <!-- 3Dmol.js renderiza aqui -->
+                <div class="dica-interacao">Arraste para rodar · Scroll para zoom</div>
+                <div id="status-bar" class="status-bar"></div>
             </div>
         </section>
 
-        <!-- BARRA LATERAL DIREITA: Painel Didático (Automação Google Académico) -->
+        <!-- COLUNA DIREITA: Análise Científica -->
         <section class="sidebar-didactic">
-            <h2>Análise Científica Automática</h2>
-            
+            <h2>📊 Análise Científica</h2>
+
             <div id="info-card">
-                <h3 id="info-nome">A aguardar molécula...</h3>
-                <p><strong>Fórmula Química:</strong> <span id="info-formula">-</span></p>
-                <p><strong>Geometria Molecular:</strong> <span id="info-geometria">-</span></p>
-                <p><strong>Ângulos de Ligação:</strong> <span id="info-angulos">-</span></p>
-                
-                <hr>
-                
-                <h4>📚 Dados da Literatura (Busca Automática)</h4>
-                <div id="info-detalhes" class="didactic-text">
-                    <p style="color: #64748b; font-style: italic;">As informações teóricas serão carregadas automaticamente aqui com base em fontes académicas.</p>
+                <h3 id="info-nome">Aguardando molécula…</h3>
+
+                <div class="info-linha">
+                    <strong>Fórmula:</strong>
+                    <span class="info-valor" id="info-formula">—</span>
                 </div>
+                <div class="info-linha">
+                    <strong>Massa Molar:</strong>
+                    <span class="info-valor" id="info-peso">—</span>
+                </div>
+                <div class="info-linha">
+                    <strong>Carga:</strong>
+                    <span class="info-valor" id="info-carga">—</span>
+                </div>
+                <div class="info-linha">
+                    <strong>Geometria:</strong>
+                    <span class="info-valor" id="info-geometria">—</span>
+                </div>
+                <div class="info-linha">
+                    <strong>Ângulos:</strong>
+                    <span class="info-valor" id="info-angulos">—</span>
+                </div>
+                <div class="info-linha" style="border-bottom:none; padding-bottom:0;">
+                    <strong>Polaridade:</strong>
+                    <span class="info-valor" id="info-polaridade">—</span>
+                </div>
+            </div>
+
+            <hr style="margin:14px 0;">
+
+            <h4 style="font-size:0.82rem;color:#334155;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">
+                📚 Literatura Científica
+            </h4>
+            <div id="info-detalhes" class="didactic-text">
+                <p style="color:#94a3b8;font-style:italic;font-size:0.82rem;">
+                    Busque uma molécula para carregar dados da literatura.
+                </p>
             </div>
         </section>
 
     </main>
 
-    <!-- ======================================================================= -->
-    <!-- IMPORTAÇÃO DAS BIBLIOTECAS (FIM DA PÁGINA) -->
-    
-    <!-- 1. Ecossistema PhET (Scenery, Dot, Axon) -->
-    <script src="https://unpkg.com/phet-lib@latest/dist/phet-lib.min.js"></script>
-    
-    <!-- 2. Os seus scripts lógicos locais -->
-    <!-- Vamos recriá-los do zero nos próximos passos -->
-    <script src="js/visualizador.js"></script>
-    <script src="js/app.js"></script>
+    <!-- 3Dmol.js (visualizador molecular) -->
+    <script src="https://cdn.jsdelivr.net/npm/3dmol@latest/build/3Dmol-min.js"></script>
+    <!-- Lógica do visualizador -->
+    <script src="js/geometria.js"></script>
+
 </body>
 </html>
