@@ -151,9 +151,10 @@ function configurarInteracao() {
     }
   );
 
-  // Ao pressionar sobre átomo: captura posição e vista inicial
+  // Ao pressionar (átomo ou espaço vazio): pausa a rotação automática
   container.addEventListener('mousedown', function(e) {
     if (e.button !== 0) return;
+    viewer.spin(false); // pausa spin durante interação
     if (sobreAtomo) {
       arrastandoAtomo = true;
       viewInicio = viewer.getView();
@@ -178,13 +179,14 @@ function configurarInteracao() {
     e.stopPropagation();
   });
 
-  // Soltar rato → termina modo arrasto
+  // Soltar rato → termina arrasto e retoma rotação automática
   document.addEventListener('mouseup', function() {
     if (arrastandoAtomo) {
       arrastandoAtomo = false;
       const container = document.getElementById('viewer-container');
       if (container) container.style.cursor = sobreAtomo ? 'grab' : 'default';
     }
+    if (modeloAtual) viewer.spin('y', 1.5); // retoma spin
   });
 
   // Suporte toque (mobile)
@@ -288,6 +290,7 @@ function renderizarMolecula(sdf, info, nomeQuery) {
 
   viewer.zoomTo();
   viewer.render();
+  viewer.spin('y', 1.5); // rotação automática a 1.5×
 }
 
 function atualizarVisualizacao() {
