@@ -12,6 +12,9 @@ let modeloAtual = null;
 let atomosAtuais = [];
 let estaCarregando = false;
 
+// --- Modo de visualização: 'bastoes-esferas' | 'so-esferas' ---
+let modoVisualizacao = 'bastoes-esferas';
+
 // --- Interação PhET-like ---
 let sobreAtomo = false;
 let arrastandoAtomo = false;
@@ -112,8 +115,17 @@ function configurarListeners() {
     }
   });
 
+  // Modo de visualização (radio)
+  document.querySelectorAll('input[name="modo-vis"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      modoVisualizacao = e.target.value;
+      atualizarVisualizacao();
+    });
+  });
+
   document.getElementById('chk-simbolos')?.addEventListener('change', atualizarVisualizacao);
   document.getElementById('chk-angles')?.addEventListener('change', atualizarVisualizacao);
+  document.getElementById('chk-pares')?.addEventListener('change', atualizarVisualizacao);
   document.getElementById('chk-dipolo')?.addEventListener('change', atualizarVisualizacao);
 }
 
@@ -245,6 +257,19 @@ async function buscarMolecula(query) {
   }
 }
 
+// Retorna o estilo 3Dmol baseado no modo seleccionado
+function getEstiloMolecula() {
+  if (modoVisualizacao === 'so-esferas') {
+    // Modo CPK / Space-Fill: esferas grandes com raio van der Waals
+    return { sphere: { colorscheme: 'Jmol', scale: 1.0 } };
+  }
+  // Modo padrão: bastões + esferas menores
+  return {
+    sphere: { colorscheme: 'Jmol', scale: 0.44 },
+    stick:  { colorscheme: 'Jmol', radius: 0.15 },
+  };
+}
+
 function renderizarMolecula(sdf, info, nomeQuery) {
   viewer.clear();
   viewer.removeAllLabels();
@@ -253,14 +278,11 @@ function renderizarMolecula(sdf, info, nomeQuery) {
   modeloAtual = viewer.addModel(sdf, 'sdf');
   atomosAtuais = modeloAtual.selectedAtoms({});
 
-  // Estilo base: esferas CPK + bastões
-  viewer.setStyle({}, {
-    sphere: { colorscheme: 'Jmol', scale: 0.44 },
-    stick:  { colorscheme: 'Jmol', radius: 0.15 },
-  });
+  viewer.setStyle({}, getEstiloMolecula());
 
   if (document.getElementById('chk-simbolos')?.checked) renderizarLabels();
   if (document.getElementById('chk-angles')?.checked)   renderizarAngulos();
+  if (document.getElementById('chk-pares')?.checked)    renderizarParesSolitarios();
   if (document.getElementById('chk-dipolo')?.checked)   renderizarVetorDipolo();
 
   viewer.zoomTo();
@@ -272,13 +294,11 @@ function atualizarVisualizacao() {
   viewer.removeAllLabels();
   viewer.removeAllShapes();
 
-  viewer.setStyle({}, {
-    sphere: { colorscheme: 'Jmol', scale: 0.44 },
-    stick:  { colorscheme: 'Jmol', radius: 0.15 },
-  });
+  viewer.setStyle({}, getEstiloMolecula());
 
   if (document.getElementById('chk-simbolos')?.checked) renderizarLabels();
   if (document.getElementById('chk-angles')?.checked)   renderizarAngulos();
+  if (document.getElementById('chk-pares')?.checked)    renderizarParesSolitarios();
   if (document.getElementById('chk-dipolo')?.checked)   renderizarVetorDipolo();
 
   viewer.render();
@@ -418,12 +438,135 @@ function renderizarVetorDipolo() {
 }
 
 // =============================================================================
+// PARES DE ELETRÕES LIVRES (estilo PhET)
+// =============================================================================
+
+function renderizarParesSolitarios() {
+  if (!atomosAtuais.length) return;
+
+  const { centralIdx, vizinhos } = encontrarAtomoCentral();
+  const central = atomosAtuais[centralIdx];
+  const nLig = vizinhos.length;
+  const valEletrons = ELETRONS_VALENCIA[central.elem] ?? 4;
+  const nLP = Math.max(0, Math.floor((valEletrons - nLig) / 2));
+
+  if (nLP === 0) return; // nenhum par solitário
+
+  const bondVecs = vizinhos.map(v =>
+    normalize3D({ x: v.x - central.x, y: v.y - central.y, z: v.z - central.z })
+  );
+
+  const lpPositions = calcularPosicoesParesSolitarios(central, bondVecs, nLP);
+
+  lpPositions.forEach(lp => {
+    // Dois pequenos lóbulos por par solitário (como no PhET)
+    const lpVec = normalize3D({ x: lp.x - central.x, y: lp.y - central.y, z: lp.z - central.z });
+
+    // Encontra um vetor perpendicular ao lpVec para separar os dois eletrões
+    const arb = Math.abs(lpVec.x) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
+    const perp = normalize3D(cross3D(lpVec, arb));
+    const sep = 0.22; // separação entre os dois eletrões do par
+
+    const e1 = { x: lp.x + perp.x * sep, y: lp.y + perp.y * sep, z: lp.z + perp.z * sep };
+    const e2 = { x: lp.x - perp.x * sep, y: lp.y - perp.y * sep, z: lp.z - perp.z * sep };
+
+    // Esfera translúcida de fundo (envelope do par)
+    viewer.addSphere({
+      center: lp,
+      radius: 0.40,
+      color: '#60a5fa',
+      opacity: 0.22,
+    });
+
+    // Dois eletrões do par como esferas menores
+    [e1, e2].forEach(e => {
+      viewer.addSphere({
+        center: e,
+        radius: 0.18,
+        color: '#93c5fd',
+        opacity: 0.85,
+      });
+    });
+  });
+}
+
+/**
+ * Calcula as posições dos pares de eletrões livres usando minimização de energia
+ * (repulsão de Coulomb entre todos os domínios electrónicos — PhET/VSEPR).
+ */
+function calcularPosicoesParesSolitarios(central, bondVecs, nLP) {
+  // Inicializar posições LP de forma aproximada, distribuídas na esfera
+  let lpVecs = [];
+  const phi = Math.PI * (3 - Math.sqrt(5)); // ângulo de ouro
+  for (let i = 0; i < nLP; i++) {
+    const y = 1 - (i / Math.max(nLP - 1, 1)) * 2;
+    const r = Math.sqrt(Math.max(0, 1 - y * y));
+    const theta = phi * i;
+    lpVecs.push(normalize3D({ x: Math.cos(theta) * r, y, z: Math.sin(theta) * r }));
+  }
+
+  // Minimização iterativa: maximizar repulsão de todos os domínios electrónicos
+  const allVecs = () => [...bondVecs, ...lpVecs];
+  const lr = 0.08;
+
+  for (let iter = 0; iter < 80; iter++) {
+    for (let i = 0; i < nLP; i++) {
+      const lpIdx = bondVecs.length + i;
+      const all = allVecs();
+      let grad = { x: 0, y: 0, z: 0 };
+
+      for (let j = 0; j < all.length; j++) {
+        if (j === lpIdx) continue;
+        const dx = all[lpIdx].x - all[j].x;
+        const dy = all[lpIdx].y - all[j].y;
+        const dz = all[lpIdx].z - all[j].z;
+        const d2 = dx * dx + dy * dy + dz * dz + 1e-4;
+        const f = 1 / (d2 * Math.sqrt(d2));
+        grad.x += dx * f; grad.y += dy * f; grad.z += dz * f;
+      }
+
+      // Projetar gradiente na superfície da esfera (remover componente radial)
+      const lp = all[lpIdx];
+      const radComp = grad.x * lp.x + grad.y * lp.y + grad.z * lp.z;
+      grad = { x: grad.x - radComp * lp.x, y: grad.y - radComp * lp.y, z: grad.z - radComp * lp.z };
+
+      lpVecs[i] = normalize3D({
+        x: lp.x + grad.x * lr,
+        y: lp.y + grad.y * lr,
+        z: lp.z + grad.z * lr,
+      });
+    }
+  }
+
+  // Converter de vectores unitários para posições no espaço
+  const lpDist = 1.05; // distância ao átomo central (Å)
+  return lpVecs.map(v => ({
+    x: central.x + v.x * lpDist,
+    y: central.y + v.y * lpDist,
+    z: central.z + v.z * lpDist,
+  }));
+}
+
+// =============================================================================
 // UTILITÁRIOS MATEMÁTICOS
 // =============================================================================
 
 function dist3D(a, b) {
   const dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
   return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+function normalize3D(v) {
+  const m = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z) || 1;
+  return { x: v.x / m, y: v.y / m, z: v.z / m };
+}
+
+function cross3D(a, b) {
+  return {
+    x: a.y * b.z - a.z * b.y,
+    y: a.z * b.x - a.x * b.z,
+    z: a.x * b.y - a.y * b.x,
+  };
 }
 
 function calcularAngulo(a, centro, b) {

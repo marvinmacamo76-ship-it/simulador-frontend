@@ -100,9 +100,27 @@
             font-size: 0.85rem; color: #475569;
             padding: 5px 0; cursor: pointer;
         }
-        .control-group label input[type="checkbox"] {
+        .control-group label input[type="checkbox"],
+        .control-group label input[type="radio"] {
             accent-color: #0ea5e9;
             width: 15px; height: 15px;
+            flex-shrink: 0;
+        }
+        .radio-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.85rem; color: #475569;
+            padding: 6px 10px; cursor: pointer;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 6px;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .radio-label:hover { background: #f1f5f9; }
+        .radio-label:has(input:checked) {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1e40af;
+            font-weight: 600;
         }
 
         /* ---- Painel de informações (coluna direita) ---- */
@@ -211,9 +229,22 @@
                 </p>
             </div>
 
+            <!-- Modo de visualização -->
+            <div class="control-group">
+                <h3>🎨 Modo de Visualização</h3>
+                <label class="radio-label">
+                    <input type="radio" name="modo-vis" value="bastoes-esferas" id="modo-bastoes" checked>
+                    🥢 Bastões e Esferas
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="modo-vis" value="so-esferas" id="modo-esferas">
+                    ⚫ Só Esferas (CPK)
+                </label>
+            </div>
+
             <!-- Opções de visualização -->
             <div class="control-group">
-                <h3>👁️ Opções de Visualização</h3>
+                <h3>👁️ Opções de Sobreposição</h3>
                 <label>
                     <input type="checkbox" id="chk-simbolos" checked>
                     Mostrar Símbolos dos Elementos
@@ -221,6 +252,10 @@
                 <label>
                     <input type="checkbox" id="chk-angles" checked>
                     Mostrar Ângulos de Ligação
+                </label>
+                <label>
+                    <input type="checkbox" id="chk-pares">
+                    Mostrar Pares de Eletrões Livres
                 </label>
                 <label>
                     <input type="checkbox" id="chk-dipolo">
