@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descrição e Arquitetura | STEM Licungo</title>
+    <style>
+        /* =========================================
+           ESTILOS DA PÁGINA DE DESCRIÇÃO
+           ========================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            color: #2d3748;
+            line-height: 1.6;
+            padding-bottom: 3rem;
+        }
+
+        /* Barra Superior com Botão Voltar */
+        .topo-navegacao {
+            background: linear-gradient(135deg, #2b6cb0, #38b2ac);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-voltar {
+            background-color: #ffffff;
+            color: #2b6cb0;
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.2s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-voltar:hover {
+            background-color: #f1f5f9;
+            transform: translateY(-2px);
+        }
+
+        /* Conteúdo Principal */
+        .conteudo-container {
+            max-width: 900px;
+            margin: 3rem auto;
+            background: #ffffff;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: #2b6cb0;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 3px solid #38b2ac;
+            padding-bottom: 0.5rem;
+        }
+
+        .subtitulo-doc {
+            font-size: 1.1rem;
+            color: #4a5568;
+            margin-bottom: 2.5rem;
+            font-style: italic;
+        }
+
+        h2 {
+            color: #2d3748;
+            font-size: 1.4rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        p {
+            margin-bottom: 1.2rem;
+            color: #4a5568;
+            font-size: 1.05rem;
+            text-align: justify;
+        }
+
+        ul {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+            color: #4a5568;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .destaque-caixa {
+            background-color: #f8fafc;
+            border-left: 4px solid #2b6cb0;
+            padding: 1.2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+        }
+
+        /* Responsividade para telemóveis */
+        @media (max-width: 768px) {
+            .conteudo-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            h1 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA SUPERIOR COM BOTÃO DE RETORNO -->
+    <header class="topo-navegacao">
+        <a href="index.html" class="btn-voltar">
+            <span>←</span> Voltar ao Menu Inicial
+        </a>
+    </header>
+
+    <!-- CONTEÚDO DA DESCRIÇÃO -->
+    <main class="conteudo-container">
+        <h1>Descrição e Fundamentação do Projeto</h1>
+        <p class="subtitulo-doc">Portal Interativo de Geometria Molecular e Polaridade | Abordagem STEM</p>
+
+        <section>
+            <h2>🎯 O que é e para que serve?</h2>
+            <p>
+                Este aplicativo é uma plataforma educacional interativa desenvolvida para apoiar o ensino e a aprendizagem de Química. O seu principal objetivo é transformar conceitos abstratos de <strong>Geometria Molecular</strong> (baseados na Teoria de Repulsão dos Pares de Elétrons da Valência - TRPEV) e <strong>Polaridade</strong> em experiências visuais, dinâmicas e acessíveis para estudantes e professores.
+            </p>
+            <div class="destaque-caixa">
+                <p><strong>Missão Educacional:</strong> Superar barreiras de laboratório físico, permitindo que qualquer estudante visualize estruturas químicas tridimensionais e bidimensionais em tempo real diretamente no navegador, sem custos adicionais.</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>🇲🇿 Contexto Académico e Abordagem STEM</h2>
+            <p>
+                Desenvolvido no âmbito das iniciativas académicas da <strong>Universidade Licungo</strong> em Moçambique, o projeto aplica a metodologia <strong>STEM</strong> (Ciência, Tecnologia, Engenharia e Matemática), integrando o raciocínio científico da química com o desenvolvimento de software moderno. A ferramenta foi concebida para responder às reais necessidades pedagógicas do contexto moçambicano, promovendo a literacia digital e científica nas salas de aula.
+            </p>
+        </section>
+
+        <section>
+            <h2>⚙️ Arquitetura de Software e Ferramentas Tecnológicas</h2>
+            <p>
+                A plataforma foi construída utilizando tecnologias web modernas de alto desempenho, destacando-se:
+            </p>
+            <ul>
+                <li><strong>Ecossistema Gráfico PhET (Scenery, Dot e Axon):</strong> Utilizado como base de arquitetura para a renderização de grafos de cena interativos, gestão reativa de estado e motores matemáticos 2D.</li>
+                <li><strong>Integração com PubChem:</strong> Algoritmos dedicados ao consumo e tradução de dados estruturais de compostos químicos reais.</li>
+                <li><strong>Padrões Web Nativos (HTML5, CSS3 e ES6+):</strong> Garantem compatibilidade universal com computadores, tablets e telemóveis, sem necessidade de instalações complexas.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>👥 Autoria</h2>
+            <p>
+                Projeto desenvolvido com foco na inovação educacional tecnológica, unindo rigor científico e engenharia de software para o fortalecimento do ensino superior e secundário em Moçambique.
+            </p>
+        </section>
+    </main>
+
+</body>
+</html>
