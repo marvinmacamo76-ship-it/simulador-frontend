@@ -1,178 +1,118 @@
-
-<html lang="pt-PT">
+<!DOCTYPE html>
+<html lang="pt-MZ">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Molecular STEM - UniLicungo</title>
-    <!-- Favicon do Tubo de Ensaio -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230ea5e9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' transform='rotate(30)'%3E%3Cpath d='M9 2h6' stroke='%23fff'/%3E%3Cpath d='M10 2v14a2 2 0 0 0 4 0V2' stroke='%23fff'/%3E%3Cpath d='M10 10v6a2 2 0 0 0 4 0v-6z' fill='%230ea5e9' stroke='none'/%3E%3Ccircle cx='12' cy='8' r='1' fill='%230ea5e9' stroke='none'/%3E%3C/svg%3E">
-    <!-- Link para o nosso arquivo de estilo visual -->
+    <title>Construtor de Geometria Molecular | STEM Licungo</title>
+    
+    <!-- O seu CSS antigo que contém a estrutura dos painéis laterais -->
     <link rel="stylesheet" href="css/estilo.css">
-    <!-- Importando a biblioteca 3Dmol.js de forma gratuita para renderização fluida -->
-    <script src="https://3dmol.org/build/3Dmol-min.js"></script>
+    
+    <style>
+        /* Estilo rápido para a barra superior e botão voltar nesta página */
+        .topo-navegacao {
+            background: #1e293b;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+        .btn-voltar {
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-voltar:hover { background-color: #2563eb; }
+        
+        /* Ajuste do container para compensar a nova barra superior */
+        .app-container { height: calc(100vh - 55px); }
+        
+        /* Área onde o Scenery do PhET vai atuar */
+        #cenario-phet-container {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff; /* Fundo branco para a simulação */
+            position: relative;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Cabeçalho do Aplicativo (Contexto STEM Moçambique) -->
-    <header class="app-header">
-        <div class="header-content">
-            <!-- Ícone do Tubo de Ensaio Inclinado -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tube-icon">
-                <path d="M9 2h6" stroke="#ffffff"/>
-                <path d="M10 2v14a2 2 0 0 0 4 0V2" stroke="#ffffff"/>
-                <path d="M10 12v4a2 2 0 0 0 4 0v-4z" fill="#0ea5e9" stroke="none" />
-                <circle cx="11.5" cy="9" r="1" fill="#0ea5e9" stroke="none" />
-                <circle cx="12.5" cy="6" r="0.8" fill="#0ea5e9" stroke="none" />
-            </svg>
-            <h1>Simulador de Geometria Molecular e Polaridade</h1>
-            <button id="btn-guia-instrucoes" class="btn-guia" title="Guia de Instruções" style="margin-left: auto; background-color: #f59e0b; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s, background-color 0.2s;">
-                ❓
-            </button>
-        </div>
-        <p>Abordagem STEM para o Ensino de Química | Universidade Licungo</p>
+    <!-- BARRA SUPERIOR COM BOTÃO DE RETORNO -->
+    <header class="topo-navegacao">
+        <a href="index.html" class="btn-voltar">
+            <span>←</span> Voltar ao Menu Inicial
+        </a>
     </header>
 
-    <!-- Conteiner Principal (Divide a tela em blocos de trabalho) -->
+    <!-- CONTEINER PRINCIPAL (Painéis laterais e área central) -->
     <main class="app-container">
         
-        <!-- BARRA LATERAL ESQUERDA: Controles e Captura (Inspirado em OSRA, ChemSketch e PhET) -->
+        <!-- BARRA LATERAL ESQUERDA: Controles de Inserção -->
         <section class="sidebar-controls">
             <h2>Painel de Controle</h2>
             
-            <!-- Integração com a Câmera e IA -->
             <div class="control-group">
-                <h3>📷 Inserir Composto</h3>
-                <button id="btn-principal-camera" class="btn-primary">Inserir Molécula (Foto/Ficheiro/Texto)</button>
-                <p class="hint">Escolha entre tirar foto, carregar uma imagem ou digitar a estrutura.</p>
-                
-                <button id="btn-config-ia" class="btn-primary" style="background-color: #f59e0b; margin-top: 10px;">⚙️ Configurar IA (Gemini)</button>
-            </div>
-
-            <!-- Busca e Filtros para os 200 Compostos -->
-            <div class="control-group">
-                <h3>🔍 Biblioteca de Compostos</h3>
+                <h3>🔍 Inserir / Buscar Molécula</h3>
                 <input type="text" id="search-input" placeholder="Ex: H2O, Metano...">
-                <div class="filter-options">
-                    <button class="btn-filtro active" data-tipo="Todos">Todas</button>
-                    <button class="btn-filtro" data-tipo="Orgânico">Orgânicos</button>
-                    <button class="btn-filtro" data-tipo="Inorgânico">Inorgânicos</button>
-
-                    <!-- Botões novos ajustados à tua nomenclatura -->
-                    <button class="btn-filtro" data-tipo="Iónico">Substâncias Iónicas</button>
-                    <button class="btn-filtro" data-tipo="Elementar">Substâncias Elementares</button>
-                </div>
-                <select id="select-molecule" size="5">
-                    <!-- As opções de moléculas serão injetadas aqui pelo dados.js -->
-                </select>
+                <button id="btn-buscar-pubchem" class="btn-primary" style="margin-top: 10px;">Buscar e Construir</button>
+                <p class="hint">O sistema irá extrair a estrutura diretamente do PubChem.</p>
             </div>
 
-            <!-- Opções Visuais Dinâmicas (Inspirado no PhET Molecule Shapes) -->
+            <!-- Opções Visuais do PhET -->
             <div class="control-group">
                 <h3>👁️ Opções de Visualização</h3>
-                <label><input type="checkbox" id="chk-arrows" checked> Mostrar Vetores de Polaridade (Dipolo)</label>
-                <label><input type="checkbox" id="chk-lonepairs" checked> Mostrar Pares de Elétrons Isolados</label>
                 <label><input type="checkbox" id="chk-angles" checked> Mostrar Ângulos de Ligação</label>
+                <label><input type="checkbox" id="chk-simbolos" checked> Mostrar Símbolos dos Elementos</label>
             </div>
         </section>
 
-        <!-- ÁREA CENTRAL: O Visualizador 3D Fluido (Gerenciado pelo 3Dmol.js) -->
+        <!-- ÁREA CENTRAL: O Novo Visualizador PhET (Scenery + Dot + Axon) -->
         <section class="visualizer-container">
-            <!-- Este elemento é onde a mágica do 3D acontece com interações de toque e rotação -->
-            <div id="mol-3d-viewer"></div>
-            <div class="viewer-controls">
-                <button id="btn-style-ball">Esfera e Bastão</button>
-                <button id="btn-style-space">Espaço Preenchido (CPK)</button>
+            <div id="cenario-phet-container">
+                <!-- O Canvas gerado pelo Scenery será injetado aqui via JavaScript -->
             </div>
         </section>
 
-        <!-- BARRA LATERAL DIREITA: Painel Didático e Explicativo (Teoria TRPEV/VSEPR) -->
+        <!-- BARRA LATERAL DIREITA: Painel Didático (Automação Google Académico) -->
         <section class="sidebar-didactic">
-            <h2>Análise Científica</h2>
+            <h2>Análise Científica Automática</h2>
             
             <div id="info-card">
-                <h3 id="info-nome">Selecione uma molécula</h3>
+                <h3 id="info-nome">A aguardar molécula...</h3>
                 <p><strong>Fórmula Química:</strong> <span id="info-formula">-</span></p>
-                <p><strong>Classificação:</strong> <span id="info-tipo">-</span></p>
                 <p><strong>Geometria Molecular:</strong> <span id="info-geometria">-</span></p>
                 <p><strong>Ângulos de Ligação:</strong> <span id="info-angulos">-</span></p>
-                <p><strong>Pares de Elétrons Isolados:</strong> <span id="info-pares">-</span></p>
-                <p><strong>Polaridade Resultante:</strong> <span id="info-polaridade">-</span></p>
                 
                 <hr>
                 
-                <h4>📚 Justificativa Teórica (TRPEV)</h4>
-                <p id="info-detalhes" class="didactic-text">
-                    Use o painel à esquerda para carregar uma molécula ou tirar uma foto para análise computacional do RDKit e OpenBabel.
-                </p>
-
-                <hr>
-
-                <h4>🇲🇿 Aplicação Contextualizada</h4>
-                <p id="info-mocambique" class="didactic-text">
-                    Informações sobre a relevância deste composto no cotidiano moçambicano e indústrias locais.
-                </p>
+                <h4>📚 Dados da Literatura (Busca Automática)</h4>
+                <div id="info-detalhes" class="didactic-text">
+                    <p style="color: #64748b; font-style: italic;">As informações teóricas serão carregadas automaticamente aqui com base em fontes académicas.</p>
+                </div>
             </div>
         </section>
 
     </main>
-    <!-- ==================== MENU POP-UP DE OPÇÕES (MODAL) ==================== -->
-    <div id="modal-opcoes" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000; color: white; text-align: center; font-family: sans-serif; min-width: 280px;">
-        <h3 style="margin-top: 0;">Como deseja inserir a molécula?</h3>
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
-            <button id="opt-tirar-foto" style="padding: 10px; cursor: pointer; background: #0ea5e9; color: white; border: none; border-radius: 4px; font-weight: bold;">📷 Tirar Foto Agora</button>
-            <button id="opt-carregar-ficheiro" style="padding: 10px; cursor: pointer; background: #0ea5e9; color: white; border: none; border-radius: 4px; font-weight: bold;">📁 Escolher da Galeria / Ficheiros</button>
-            <button id="opt-escrever-texto" style="padding: 10px; cursor: pointer; background: #334155; color: white; border: none; border-radius: 4px; font-weight: bold;">✍️ Escrever Nome ou SMILES</button>
-        </div>
-        <button id="btn-fechar-modal" style="margin-top: 15px; background: #ff4d4d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Cancelar</button>
 
-        <!-- Área de texto interna para a Opção 3 (Aparece dentro do modal se clicar em Escrever) -->
-        <div id="zona-texto-molecula" style="display: none; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;">
-            <input type="text" id="input-texto-smiles" placeholder="Digite o SMILES (ex: H2O)" style="width: 80%; padding: 8px; border-radius: 4px; border: 1px solid #666; background: #333; color: white;">
-            <button id="btn-enviar-texto" style="padding: 8px 12px; margin-left: 5px; background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Gerar 3D</button>
-        </div>
-
-        <!-- Indicador visual de carregamento da Inteligência Artificial -->
-        <div id="status-ia" style="display: none; color: #22c55e; margin-top: 15px; font-weight: bold; animation: blink 1s infinite;">
-            ⏳ A processar IA...
-        </div>
-    </div>
-
-    <!-- MODAL DE CONFIGURAÇÃO DA IA GEMINI -->
-    <div id="modal-ia" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000; color: white; text-align: center; font-family: sans-serif; min-width: 320px;">
-        <h3 style="margin-top: 0; color: #f59e0b;">Chave de IA (Gemini)</h3>
-        <p style="font-size: 13px; color: #ccc;">Insira a sua API Key do Google Gemini para ativar textos didáticos baseados em Glinka e Atkins.</p>
-        <input type="password" id="input-gemini-key" placeholder="Colar API Key aqui..." style="width: 90%; padding: 8px; border-radius: 4px; border: 1px solid #666; background: #333; color: white; margin-bottom: 15px;">
-        <div style="display: flex; justify-content: space-around;">
-            <button id="btn-salvar-ia" style="background: #22c55e; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Salvar</button>
-            <button id="btn-fechar-ia" style="background: #ff4d4d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Cancelar</button>
-        </div>
-    </div>
-
-    <!-- MODAL DO GUIA DE INSTRUÇÕES -->
-    <div id="modal-guia" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.7); z-index: 1000; color: white; text-align: left; font-family: sans-serif; min-width: 320px; max-width: 500px; max-height: 80vh; overflow-y: auto; border: 1px solid #334155;">
-        <h2 style="margin-top: 0; color: #38bdf8; display: flex; align-items: center; gap: 10px;">📖 Guia de Instruções</h2>
-        <p style="color: #cbd5e1; font-size: 14px; line-height: 1.5;">Bem-vindo ao Simulador Molecular STEM! Siga as instruções abaixo para tirar o máximo proveito da plataforma:</p>
-        
-        <ul style="color: #f8fafc; font-size: 14px; line-height: 1.6; padding-left: 20px; margin-bottom: 20px;">
-            <li style="margin-bottom: 8px;"><strong>Procurar Moléculas:</strong> Utilize a barra de pesquisa na esquerda para procurar compostos existentes na base de dados.</li>
-            <li style="margin-bottom: 8px;"><strong>Adicionar Novas Moléculas:</strong> Clique em <em>"Inserir Molécula"</em>. Você pode carregar uma foto, ficheiro, ou simplesmente escrever o nome do composto.</li>
-            <li style="margin-bottom: 8px;"><strong>Tradução Automática:</strong> Pode escrever o nome do composto em Português. O sistema tentará traduzir automaticamente para encontrar a estrutura no PubChem.</li>
-            <li style="margin-bottom: 8px;"><strong>Interação 3D:</strong> Na área central, use o rato ou o toque para girar (arrastar), aplicar zoom (scroll) ou mover (botão direito do rato) a molécula.</li>
-            <li style="margin-bottom: 8px;"><strong>Inteligência Artificial:</strong> Clique em <em>⚙️ Configurar IA (Gemini)</em> e insira a sua chave API para obter explicações didáticas completas sobre geometria, ângulos e propriedades.</li>
-        </ul>
-        <div style="text-align: right;">
-            <button id="btn-fechar-guia" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s;">Entendido!</button>
-        </div>
-    </div>
-
-    <!-- Inputs invisíveis nativos para interagir com o sistema operativo -->
-    <input type="file" id="input-foto-direta" accept="image/*" capture="environment" style="display: none;">
-    <input type="file" id="input-galeria" accept="image/*" style="display: none;">
     <!-- ======================================================================= -->
-
-    <!-- IMPORTAÇÃO DOS NOSSOS SCRIPTS LOCAIS (A ordem importa!) -->
-    <!-- Primeiro carregamos os dados, depois o motor 3D, por fim a lógica do app -->
-    <script src="https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js"></script>
+    <!-- IMPORTAÇÃO DAS BIBLIOTECAS (FIM DA PÁGINA) -->
+    
+    <!-- 1. Ecossistema PhET (Scenery, Dot, Axon) -->
+    <script src="https://unpkg.com/phet-lib@latest/dist/phet-lib.min.js"></script>
+    
+    <!-- 2. Os seus scripts lógicos locais -->
+    <!-- Vamos recriá-los do zero nos próximos passos -->
     <script src="js/visualizador.js"></script>
     <script src="js/app.js"></script>
 </body>

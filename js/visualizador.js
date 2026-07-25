@@ -1,169 +1,144 @@
 /* ==========================================================================
-   MOTOR GRÁFICO 3D (Gerenciamento do 3Dmol.js) — versão corrigida
+   MOTOR GRÁFICO (PhET Scenery & Dot Engine)
    ========================================================================== */
 
-let visualizador3D = null;
-let estiloAtual = 'ball';
-let motorPronto = false;
-
-/**
- * Converte o objeto modelo3D (lista de átomos) para o formato XYZ,
- * necessário para que o 3Dmol.js detete automaticamente as ligações químicas.
- */
-function moleculaParaXYZ(molecula) {
-    const atoms = molecula.modelo3D.atoms;
-    const linhas = [String(atoms.length), molecula.nome || ''];
-    atoms.forEach(a => {
-        linhas.push(`${a.elem} ${a.x.toFixed(4)} ${a.y.toFixed(4)} ${a.z.toFixed(4)}`);
-    });
-    return linhas.join('\n');
-}
+let displayPhET = null;
+let rootNode = null;
+let moleculaNode = null;
 
 function iniciarMotor3D() {
-    const container = document.getElementById('mol-3d-viewer');
+    const container = document.getElementById('cenario-phet-container');
     if (!container) {
         console.error("Elemento do visualizador não encontrado.");
         return;
     }
-    if (typeof $3Dmol === 'undefined') {
-        throw new Error("Biblioteca 3Dmol.js não foi carregada.");
-    }
-    // Adia a criação até haver dimensões reais no contêiner (evita canvas 0x0)
-    const criar = () => {
-        if (container.clientWidth < 10 || container.clientHeight < 10) {
-            return requestAnimationFrame(criar);
-        }
-        visualizador3D = $3Dmol.createViewer(container, {
-            backgroundColor: '#0f172a',
-            antialias: true
-        });
-        motorPronto = true;
+
+    // Usando as bibliotecas do phet-lib que foram importadas no HTML
+    const { Node, Display, Circle, Line, Text } = phet.scenery;
+    
+    // Criação do nó raiz
+    rootNode = new Node();
+
+    // Inicialização do Display Scenery
+    displayPhET = new Display(rootNode, {
+        container: container,
+        backgroundColor: '#ffffff', // Fundo limpo padrão PhET
+        allowSceneOverflow: false
+    });
+
+    displayPhET.initializeEvents();
+    displayPhET.updateDisplay();
+
+    // Loop de renderização contínuo
+    const animacao = () => {
+        displayPhET.updateDisplay();
+        requestAnimationFrame(animacao);
     };
-    criar();
-}
+    requestAnimationFrame(animacao);
 
-function carregarMoleculaNoPainel3D(molecula, estilo = estiloAtual) {
-    if (!molecula) return;
-    if (!motorPronto || !visualizador3D) {
-        // aguarda o motor terminar de iniciar antes de renderizar
-        return requestAnimationFrame(() => carregarMoleculaNoPainel3D(molecula, estilo));
-    }
-    if (!molecula || (!molecula.sdfText && (!molecula.modelo3D || !molecula.modelo3D.atoms))) {
-        console.warn("Dados 3D ausentes para a molécula.");
-        return;
-    }
-
-    estiloAtual = estilo;
-
-    visualizador3D.clear();
-
-    // Suporta carregamento direto de SDF (ex: do PubChem ou backend) ou via XYZ local
-    let model;
-    if (molecula.sdfText) {
-        model = visualizador3D.addModel(molecula.sdfText, 'sdf');
-    } else {
-        const xyz = moleculaParaXYZ(molecula);
-        model = visualizador3D.addModel(xyz, 'xyz');
-    }
-    
-    // Garante ligações mesmo quando o parser não as inferir
-    try { if (model && typeof model.assignBonds === 'function') model.assignBonds(); } catch (e) {}
-
-    if (estiloAtual === 'ball') {
-        visualizador3D.setStyle({}, {
-            stick: { radius: 0.12, colorscheme: 'Jmol' },
-            sphere: { radius: 0.32, colorscheme: 'Jmol' }
-        });
-    } else {
-        visualizador3D.setStyle({}, {
-            sphere: { scale: 0.9, colorscheme: 'Jmol' }
-        });
-    }
-
-    // 1. 🏷️ Etiquetas dos Átomos (Sempre visíveis para orientação)
-    try {
-        if (molecula.modelo3D && molecula.modelo3D.atoms) {
-            molecula.modelo3D.atoms.forEach(at => {
-                visualizador3D.addLabel(at.elem, {
-                    position: { x: at.x + 0.2, y: at.y + 0.2, z: at.z },
-                    backgroundColor: 'rgba(15, 23, 42, 0.7)',
-                    fontSize: 12,
-                    fontColor: 'white',
-                    alignment: 'center',
-                    backgroundOpacity: 0.6,
-                    useScreen: false,
-                    inFront: true
-                });
-            });
-        }
-    } catch (e) {
-        console.warn("Aviso: Não foi possível carregar as etiquetas dos átomos.", e);
-    }
-
-    // 2. 📐 Ângulos de Ligação (chk-angles)
-    const mostrarAngulos = document.getElementById("chk-angles")?.checked ?? true;
-    if (mostrarAngulos && molecula.angulo && molecula.modelo3D && molecula.modelo3D.atoms) {
-        const centro = molecula.modelo3D.atoms[0]; // O primeiro átomo da lista é o central
-        visualizador3D.addLabel(molecula.angulo, {
-            position: { x: centro.x, y: centro.y - 0.4, z: centro.z + 0.4 },
-            backgroundColor: '#0ea5e9', // Azul vivo do teu cabeçalho CSS
-            fontSize: 13,
-            fontColor: 'white',
-            backgroundOpacity: 0.9,
-            useScreen: false,
-            inFront: true
-        });
-    }
-
-    // 3. ⚛️ Pares de Elétrons Isolados (chk-lonepairs)
-    const mostrarParesIsolados = document.getElementById("chk-lonepairs")?.checked ?? true;
-    if (mostrarParesIsolados && molecula.paresIsolados > 0 && molecula.modelo3D && molecula.modelo3D.atoms) {
-        const centro = molecula.modelo3D.atoms[0];
-        // Adiciona pequenas esferas roxas para representar visualmente os pares isolados (PhET style!)
-        for (let i = 0; i < molecula.paresIsolados; i++) {
-            const offsetX = (i === 0 ? 0.45 : -0.45);
-            visualizador3D.addSphere({
-                center: { x: centro.x + offsetX, y: centro.y, z: centro.z + 0.5 },
-                radius: 0.16,
-                color: '#a855f7' // Roxo elegante para os pares não-ligantes
-            });
-        }
-    }
-
-    // 4. ➡️ Vetores de Polaridade / Dipolo (chk-arrows)
-    const mostrarSetas = document.getElementById("chk-arrows")?.checked ?? true;
-    if (mostrarSetas && molecula.polaridade === "Polar" && molecula.modelo3D && molecula.modelo3D.atoms) {
-        const centro = molecula.modelo3D.atoms[0];
-        visualizador3D.addArrow({
-            start: { x: centro.x, y: centro.y - 0.8, z: centro.z },
-            end: { x: centro.x, y: centro.y + 0.8, z: centro.z },
-            radius: 0.07,
-            color: '#ef4444', // Seta vermelha indicando o vetor de dipolo
-            clickable: false
-        });
-    }
-
-    try { visualizador3D.resize(); } catch (e) {}
-    visualizador3D.zoomTo();
-    
-    // 🔄 Rotação Automática Ativa por Padrão
-    try { 
-        visualizador3D.spin("y", 1); 
-    } catch(e) {
-        console.warn("Aviso: O seu navegador não suporta a animação automática.", e);
-    }
-
-    visualizador3D.render();
-    
-    // Segundo render após o próximo frame para garantir viewport correto
-    requestAnimationFrame(() => {
-        try {
-            visualizador3D.render();
-        } catch(e) {}
+    // Ajusta o display quando a janela muda de tamanho
+    window.addEventListener('resize', () => {
+        displayPhET.setWidthHeight(container.clientWidth, container.clientHeight);
     });
 }
 
-// Redesenha ao redimensionar a janela para manter o canvas correto
-window.addEventListener('resize', () => {
-    try { visualizador3D && visualizador3D.resize(); } catch (e) {}
-});
+function carregarMoleculaNoPainel3D(molecula) {
+    if (!molecula) return;
+    if (!displayPhET) iniciarMotor3D();
+
+    const { Node, Circle, Line, Text } = phet.scenery;
+    const { Vector2 } = phet.dot;
+
+    // Remove a molécula antiga se existir
+    if (moleculaNode) {
+        rootNode.removeChild(moleculaNode);
+    }
+
+    moleculaNode = new Node({ center: new Vector2(displayPhET.width / 2, displayPhET.height / 2) });
+    rootNode.addChild(moleculaNode);
+
+    // A partir dos dados estruturais (PubChem), nós mapeamos para coordenadas 2D projetadas
+    // Caso a molécula venha com modelo3D (átomos com x, y, z), criamos a estrutura
+    if (molecula.modelo3D && molecula.modelo3D.atoms) {
+        const atoms = molecula.modelo3D.atoms;
+        const escala = 100; // Multiplicador para o tamanho visual
+        
+        // 1. Desenhar Ligações (simples heurística de distância)
+        const drawnBonds = new Set();
+        for (let i = 0; i < atoms.length; i++) {
+            for (let j = i + 1; j < atoms.length; j++) {
+                const a1 = atoms[i];
+                const a2 = atoms[j];
+                const dx = a1.x - a2.x;
+                const dy = a1.y - a2.y;
+                const dz = a1.z - a2.z;
+                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                // Se a distância for típica de uma ligação química (~1.2 a 1.8 Angstroms)
+                if (dist < 1.9) {
+                    const id = i + '-' + j;
+                    if (!drawnBonds.has(id)) {
+                        const v1 = new Vector2(a1.x * escala, a1.y * escala);
+                        const v2 = new Vector2(a2.x * escala, a2.y * escala);
+                        
+                        const bondLine = new Line(v1, v2, {
+                            stroke: '#94a3b8',
+                            lineWidth: 12,
+                            lineCap: 'round'
+                        });
+                        moleculaNode.addChild(bondLine);
+                        drawnBonds.add(id);
+                    }
+                }
+            }
+        }
+
+        // 2. Desenhar Átomos
+        atoms.forEach(at => {
+            const pos = new Vector2(at.x * escala, at.y * escala);
+            let cor = '#cbd5e1'; // Padrão
+            let raio = 20;
+
+            // Cores CPK básicas
+            switch(at.elem) {
+                case 'H': cor = '#ffffff'; raio = 15; break;
+                case 'C': cor = '#334155'; raio = 25; break;
+                case 'O': cor = '#ef4444'; raio = 22; break;
+                case 'N': cor = '#3b82f6'; raio = 22; break;
+                case 'Cl': cor = '#22c55e'; raio = 26; break;
+                case 'F': cor = '#4ade80'; raio = 20; break;
+                case 'S': cor = '#eab308'; raio = 28; break;
+            }
+
+            const atNode = new Circle(raio, {
+                fill: cor,
+                stroke: '#1e293b',
+                lineWidth: 2,
+                center: pos
+            });
+
+            // Se for H, a cor da letra precisa ser escura
+            const corLetra = at.elem === 'H' || at.elem === 'C' ? '#000000' : '#ffffff';
+            
+            const txt = new Text(at.elem, {
+                font: 'bold 16px sans-serif',
+                fill: (at.elem === 'C') ? '#ffffff' : ((at.elem === 'H') ? '#334155' : '#ffffff'),
+                center: pos
+            });
+
+            moleculaNode.addChild(atNode);
+            moleculaNode.addChild(txt);
+        });
+
+        // 3. Centraliza a molécula no display
+        moleculaNode.center = new Vector2(displayPhET.width / 2, displayPhET.height / 2);
+    } else {
+        // Fallback visual se não houver dados de atoms no payload
+        const txtFallback = new Text("Modelo 3D indisponível para esta molécula.", {
+            font: '20px sans-serif',
+            fill: '#ef4444',
+            center: new Vector2(0, 0)
+        });
+        moleculaNode.addChild(txtFallback);
+    }
+}
