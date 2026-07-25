@@ -196,3 +196,51 @@ body {
     .titulos h2 { font-size: 1rem; }
     .menu-container { padding: 2rem 5%; }
 }
+
+/* =========================================
+   RESPONSIVIDADE (Telas menores / Celulares)
+   ========================================= */
+@media (max-width: 768px) {
+    /* Reduz as margens do cabeçalho */
+    .cabecalho-principal {
+        padding: 2.5rem 1rem;
+    }
+
+    /* Ajusta os títulos para não quebrarem o layout */
+    .titulos h1 {
+        font-size: 1.5rem;
+    }
+    .titulos h2 {
+        font-size: 0.95rem;
+    }
+
+    /* Reduz o tamanho do tubo de ensaio animado */
+    .tubo-animado {
+        transform: rotate(30deg) scale(0.8);
+        padding: 10px;
+    }
+
+    /* Suaviza as palavras de fundo para não atrapalhar a leitura */
+    .fundo-palavras {
+        opacity: 0.25; 
+    }
+    .palavra {
+        font-size: 0.8rem !important; /* Força um tamanho menor em todas */
+    }
+    
+    /* Oculta algumas palavras no mobile para despoluir a tela */
+    .p2, .p5, .p8, .p11 {
+        display: none;
+    }
+
+    /* Ajusta os cartões do menu para ficarem numa única coluna centralizada */
+    .menu-container {
+        padding: 2rem 1.5rem;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .cartao-icone {
+        transform: scale(0.9); /* Diminui ligeiramente os ícones */
+    }
+}
