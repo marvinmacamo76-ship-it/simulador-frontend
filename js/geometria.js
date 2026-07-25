@@ -264,9 +264,10 @@ function getEstiloMolecula() {
     return { sphere: { colorscheme: 'Jmol', scale: 1.0 } };
   }
   // Modo padrão: bastões + esferas menores
+  // Esferas com scale 0.28 para que os bastões sejam bem visíveis entre os átomos
   return {
-    sphere: { colorscheme: 'Jmol', scale: 0.44 },
-    stick:  { colorscheme: 'Jmol', radius: 0.15 },
+    sphere: { colorscheme: 'Jmol', scale: 0.28 },
+    stick:  { colorscheme: 'Jmol', radius: 0.22 },
   };
 }
 
