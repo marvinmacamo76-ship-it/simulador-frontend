@@ -1,157 +1,114 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-MZ">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Molecular STEM - UniLicungo</title>
-    <!-- Favicon do Tubo de Ensaio -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230ea5e9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' transform='rotate(30)'%3E%3Cpath d='M9 2h6' stroke='%23fff'/%3E%3Cpath d='M10 2v14a2 2 0 0 0 4 0V2' stroke='%23fff'/%3E%3Cpath d='M10 10v6a2 2 0 0 0 4 0v-6z' fill='%230ea5e9' stroke='none'/%3E%3Ccircle cx='12' cy='8' r='1' fill='%230ea5e9' stroke='none'/%3E%3C/svg%3E">
-    <!-- Link para o nosso arquivo de estilo visual -->
-    <link rel="stylesheet" href="css/estilo.css">
-    <!-- Importando a biblioteca 3Dmol.js de forma gratuita para renderização fluida -->
-    <script src="https://3dmol.org/build/3Dmol-min.js"></script>
+    <title>Simulação de Geometria e Polaridade | STEM Licungo</title>
+    <link rel="stylesheet" href="css/menu.css">
 </head>
 <body>
 
-    <!-- Cabeçalho do Aplicativo (Contexto STEM Moçambique) -->
-    <header class="app-header">
-        <div class="header-content">
-            <!-- Ícone do Tubo de Ensaio Inclinado -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="tube-icon">
-                <path d="M9 2h6" stroke="#ffffff"/>
-                <path d="M10 2v14a2 2 0 0 0 4 0V2" stroke="#ffffff"/>
-                <path d="M10 12v4a2 2 0 0 0 4 0v-4z" fill="#0ea5e9" stroke="none" />
-                <circle cx="11.5" cy="9" r="1" fill="#0ea5e9" stroke="none" />
-                <circle cx="12.5" cy="6" r="0.8" fill="#0ea5e9" stroke="none" />
-            </svg>
-            <h1>Simulador de Geometria Molecular e Polaridade</h1>
+    <!-- CABEÇALHO -->
+    <header class="cabecalho-principal">
+        <!-- Fundo de palavras estilo quadro/grafite -->
+        <div class="fundo-palavras">
+            <span class="palavra p1">Geometria</span>
+            <span class="palavra p2">Polaridade</span>
+            <span class="palavra p3">STEM</span>
+            <span class="palavra p4">Química</span>
+            <span class="palavra p5">Ligações</span>
+            <span class="palavra p6">H₂O</span>
+            <span class="palavra p7">VSEPR</span>
+            <span class="palavra p8">Dipolo</span>
+            <span class="palavra p9">Ângulo</span>
+            <span class="palavra p10">Átomo</span>
+            <span class="palavra p11">Molécula</span>
         </div>
-        <p>Abordagem STEM para o Ensino de Química | Universidade Licungo</p>
+
+        <div class="tubo-animado">
+            <!-- SVG do Tubo de Ensaio com Animação -->
+            <svg viewBox="0 0 100 150" width="80" height="120" xmlns="http://www.w3.org/2000/svg">
+                <path d="M35,10 L35,100 A15,15 0 0,0 65,100 L65,10 A5,5 0 0,0 35,10 Z" fill="none" stroke="#e2e8f0" stroke-width="4"/>
+                <path d="M30,10 L70,10" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+                <path class="liquido" d="M37,60 L37,100 A13,13 0 0,0 63,100 L63,60 Z" fill="#3b82f6"/>
+                <circle class="bolha b1" cx="45" cy="90" r="3" fill="#ffffff" opacity="0.7"/>
+                <circle class="bolha b2" cx="55" cy="80" r="2.5" fill="#ffffff" opacity="0.7"/>
+                <circle class="bolha b3" cx="42" cy="70" r="2" fill="#ffffff" opacity="0.7"/>
+            </svg>
+        </div>
+        
+        <div class="titulos">
+            <h1>SIMULAÇÃO DE GEOMETRIA MOLECULAR E POLARIDADE</h1>
+            <h2>Abordagem STEM para o Ensino de Química em Moçambique | Universidade Licungo</h2>
+        </div>
     </header>
 
-    <!-- Conteiner Principal (Divide a tela em blocos de trabalho) -->
-    <main class="app-container">
-        
-        <!-- BARRA LATERAL ESQUERDA: Controles e Captura (Inspirado em OSRA, ChemSketch e PhET) -->
-        <section class="sidebar-controls">
-            <h2>Painel de Controle</h2>
-            
-            <!-- Integração com a Câmera e IA -->
-            <div class="control-group">
-                <h3>📷 Inserir Composto</h3>
-                <button id="btn-principal-camera" class="btn-primary">Inserir Molécula (Foto/Ficheiro/Texto)</button>
-                <p class="hint">Escolha entre tirar foto, carregar uma imagem ou digitar a estrutura.</p>
-                
-                <button id="btn-config-ia" class="btn-primary" style="background-color: #f59e0b; margin-top: 10px;">⚙️ Configurar IA (Gemini)</button>
+    <!-- CORPO / NAVEGAÇÃO PRINCIPAL -->
+    <main class="menu-container">
+        <!-- Secção 1 -->
+        <a href="geometria.html" class="cartao-menu principal">
+            <div class="cartao-icone">
+                <!-- SVG de uma molécula de H2O -->
+                <svg width="65" height="65" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Ligações -->
+                    <line x1="50" y1="45" x2="25" y2="75" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>
+                    <line x1="50" y1="45" x2="75" y2="75" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round"/>
+                    <!-- Oxigénio -->
+                    <circle cx="50" cy="45" r="22" fill="#ef4444"/>
+                    <text x="50" y="52" font-size="18" fill="white" text-anchor="middle" font-family="sans-serif" font-weight="bold">O</text>
+                    <!-- Hidrogénios -->
+                    <circle cx="25" cy="75" r="15" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+                    <text x="25" y="80" font-size="14" fill="#334155" text-anchor="middle" font-family="sans-serif" font-weight="bold">H</text>
+                    <circle cx="75" cy="75" r="15" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+                    <text x="75" y="80" font-size="14" fill="#334155" text-anchor="middle" font-family="sans-serif" font-weight="bold">H</text>
+                </svg>
             </div>
+            <h3>Geometria Molecular</h3>
+            <p>Aceder ao construtor dinâmico de estruturas moleculares.</p>
+        </a>
 
-            <!-- Busca e Filtros para os 200 Compostos -->
-            <div class="control-group">
-                <h3>🔍 Biblioteca de Compostos</h3>
-                <input type="text" id="search-input" placeholder="Ex: H2O, Metano...">
-                <div class="filter-options">
-                    <button class="btn-filtro active" data-tipo="Todos">Todas</button>
-                    <button class="btn-filtro" data-tipo="Orgânico">Orgânicos</button>
-                    <button class="btn-filtro" data-tipo="Inorgânico">Inorgânicos</button>
-
-                    <!-- Botões novos ajustados à tua nomenclatura -->
-                    <button class="btn-filtro" data-tipo="Iónico">Substâncias Iónicas</button>
-                    <button class="btn-filtro" data-tipo="Elementar">Substâncias Elementares</button>
-                </div>
-                <select id="select-molecule" size="5">
-                    <!-- As opções de moléculas serão injetadas aqui pelo dados.js -->
-                </select>
+        <!-- Secção 2 -->
+        <a href="polaridade.html" class="cartao-menu principal">
+            <div class="cartao-icone">
+                <!-- SVG representando a Polaridade (Nuvem eletrónica e vetor dipolo) -->
+                <svg width="65" height="65" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <!-- Gradiente da nuvem eletrónica (vermelho delta- para azul delta+) -->
+                        <linearGradient id="gradPolar" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.8" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Nuvem eletrónica assimétrica -->
+                    <ellipse cx="50" cy="60" rx="42" ry="22" fill="url(#gradPolar)"/>
+                    <!-- Átomos -->
+                    <circle cx="30" cy="60" r="12" fill="#ffffff" opacity="0.9"/>
+                    <circle cx="70" cy="60" r="10" fill="#ffffff" opacity="0.9"/>
+                    <!-- Símbolos Delta δ -->
+                    <text x="30" y="64" font-size="14" fill="#ef4444" text-anchor="middle" font-family="sans-serif" font-weight="bold">δ-</text>
+                    <text x="70" y="64" font-size="12" fill="#3b82f6" text-anchor="middle" font-family="sans-serif" font-weight="bold">δ+</text>
+                    <!-- Seta do Vetor Dipolo -->
+                    <path d="M 40 25 L 80 25 M 72 18 L 80 25 L 72 32 M 45 18 L 45 32" stroke="#1e293b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                </svg>
             </div>
+            <h3>Polaridade Molecular</h3>
+            <p>Explorar dipolos, eletronegatividade e as forças intermoleculares.</p>
+        </a>
 
-            <!-- Opções Visuais Dinâmicas (Inspirado no PhET Molecule Shapes) -->
-            <div class="control-group">
-                <h3>👁️ Opções de Visualização</h3>
-                <label><input type="checkbox" id="chk-arrows" checked> Mostrar Vetores de Polaridade (Dipolo)</label>
-                <label><input type="checkbox" id="chk-lonepairs" checked> Mostrar Pares de Elétrons Isolados</label>
-                <label><input type="checkbox" id="chk-angles" checked> Mostrar Ângulos de Ligação</label>
-            </div>
-        </section>
+        <!-- Secção 3 -->
+        <a href="descricao.html" class="cartao-menu secundario">
+            <div class="cartao-icone">📖</div>
+            <h3>Descrição</h3>
+            <p>Fundamentação técnica, arquitetura de software e autoria do projeto.</p>
+        </a>
 
-        <!-- ÁREA CENTRAL: O Visualizador 3D Fluido (Gerenciado pelo 3Dmol.js) -->
-        <section class="visualizer-container">
-            <!-- Este elemento é onde a mágica do 3D acontece com interações de toque e rotação -->
-            <div id="mol-3d-viewer"></div>
-            <div class="viewer-controls">
-                <button id="btn-style-ball">Esfera e Bastão</button>
-                <button id="btn-style-space">Espaço Preenchido (CPK)</button>
-            </div>
-        </section>
-
-        <!-- BARRA LATERAL DIREITA: Painel Didático e Explicativo (Teoria TRPEV/VSEPR) -->
-        <section class="sidebar-didactic">
-            <h2>Análise Científica</h2>
-            
-            <div id="info-card">
-                <h3 id="info-nome">Selecione uma molécula</h3>
-                <p><strong>Fórmula Química:</strong> <span id="info-formula">-</span></p>
-                <p><strong>Classificação:</strong> <span id="info-tipo">-</span></p>
-                <p><strong>Geometria Molecular:</strong> <span id="info-geometria">-</span></p>
-                <p><strong>Polaridade Resultante:</strong> <span id="info-polaridade">-</span></p>
-                
-                <hr>
-                
-                <h4>📚 Justificativa Teórica (TRPEV)</h4>
-                <p id="info-detalhes" class="didactic-text">
-                    Use o painel à esquerda para carregar uma molécula ou tirar uma foto para análise computacional do RDKit e OpenBabel.
-                </p>
-
-                <hr>
-
-                <h4>🇲🇿 Aplicação Contextualizada</h4>
-                <p id="info-mocambique" class="didactic-text">
-                    Informações sobre a relevância deste composto no cotidiano moçambicano e indústrias locais.
-                </p>
-            </div>
-        </section>
-
+        <!-- Secção 4 -->
+        <a href="instrucoes.html" class="cartao-menu secundario">
+            <div class="cartao-icone">🛠️</div>
+            <h3>Guia de Instrução</h3>
+            <p>Manual passo a passo de como navegar e utilizar a plataforma.</p>
+        </a>
     </main>
-    <!-- ==================== MENU POP-UP DE OPÇÕES (MODAL) ==================== -->
-    <div id="modal-opcoes" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000; color: white; text-align: center; font-family: sans-serif; min-width: 280px;">
-        <h3 style="margin-top: 0;">Como deseja inserir a molécula?</h3>
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
-            <button id="opt-tirar-foto" style="padding: 10px; cursor: pointer; background: #0ea5e9; color: white; border: none; border-radius: 4px; font-weight: bold;">📷 Tirar Foto Agora</button>
-            <button id="opt-carregar-ficheiro" style="padding: 10px; cursor: pointer; background: #0ea5e9; color: white; border: none; border-radius: 4px; font-weight: bold;">📁 Escolher da Galeria / Ficheiros</button>
-            <button id="opt-escrever-texto" style="padding: 10px; cursor: pointer; background: #334155; color: white; border: none; border-radius: 4px; font-weight: bold;">✍️ Escrever Nome ou SMILES</button>
-        </div>
-        <button id="btn-fechar-modal" style="margin-top: 15px; background: #ff4d4d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Cancelar</button>
 
-        <!-- Área de texto interna para a Opção 3 (Aparece dentro do modal se clicar em Escrever) -->
-        <div id="zona-texto-molecula" style="display: none; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;">
-            <input type="text" id="input-texto-smiles" placeholder="Digite o SMILES (ex: H2O)" style="width: 80%; padding: 8px; border-radius: 4px; border: 1px solid #666; background: #333; color: white;">
-            <button id="btn-enviar-texto" style="padding: 8px 12px; margin-left: 5px; background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Gerar 3D</button>
-        </div>
-
-        <!-- Indicador visual de carregamento da Inteligência Artificial -->
-        <div id="status-ia" style="display: none; color: #22c55e; margin-top: 15px; font-weight: bold; animation: blink 1s infinite;">
-            ⏳ A processar IA...
-        </div>
-    </div>
-
-    <!-- MODAL DE CONFIGURAÇÃO DA IA GEMINI -->
-    <div id="modal-ia" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000; color: white; text-align: center; font-family: sans-serif; min-width: 320px;">
-        <h3 style="margin-top: 0; color: #f59e0b;">Chave de IA (Gemini)</h3>
-        <p style="font-size: 13px; color: #ccc;">Insira a sua API Key do Google Gemini para ativar textos didáticos baseados em Glinka e Atkins.</p>
-        <input type="password" id="input-gemini-key" placeholder="Colar API Key aqui..." style="width: 90%; padding: 8px; border-radius: 4px; border: 1px solid #666; background: #333; color: white; margin-bottom: 15px;">
-        <div style="display: flex; justify-content: space-around;">
-            <button id="btn-salvar-ia" style="background: #22c55e; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Salvar</button>
-            <button id="btn-fechar-ia" style="background: #ff4d4d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Cancelar</button>
-        </div>
-    </div>
-
-    <!-- Inputs invisíveis nativos para interagir com o sistema operativo -->
-    <input type="file" id="input-foto-direta" accept="image/*" capture="environment" style="display: none;">
-    <input type="file" id="input-galeria" accept="image/*" style="display: none;">
-    <!-- ======================================================================= -->
-
-    <!-- IMPORTAÇÃO DOS NOSSOS SCRIPTS LOCAIS (A ordem importa!) -->
-    <!-- Primeiro carregamos os dados, depois o motor 3D, por fim a lógica do app -->
-    <script src="https://unpkg.com/@rdkit/rdkit/dist/RDKit_minimal.js"></script>
-    <script src="js/visualizador.js"></script>
-    <script src="js/app.js"></script>
 </body>
 </html>

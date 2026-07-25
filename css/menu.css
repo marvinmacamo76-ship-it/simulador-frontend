@@ -1,0 +1,198 @@
+/* =========================================
+   RESET E VARIÁVEIS GLOBAIS
+   ========================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+:root {
+    --cor-fundo: #f4f7f6;
+    --cor-texto: #2d3748;
+    --cor-primaria: #2b6cb0; /* Azul acadêmico */
+    --cor-secundaria: #38b2ac; /* Verde água STEM */
+    --cor-branca: #ffffff;
+    --sombra-cartao: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --sombra-hover: 0 10px 15px rgba(0, 0, 0, 0.15);
+}
+
+body {
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* =========================================
+   CABEÇALHO (HEADER)
+   ========================================= */
+.cabecalho-principal {
+    /* Fundo preto intenso */
+    background-color: #0a0a0a; 
+    color: var(--cor-branca);
+    padding: 4rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    
+    /* Configurações para segurar as palavras de fundo */
+    position: relative;
+    overflow: hidden;
+}
+
+/* =========================================
+   FUNDO "GRAFITE / QUADRO NEGRO"
+   ========================================= */
+.fundo-palavras {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; /* Para não bloquear cliques */
+    z-index: 1; /* Fica atrás dos títulos */
+    opacity: 0.6; /* Levemente transparente para não ofuscar o texto principal */
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; /* Fonte estilo manuscrita */
+    font-weight: bold;
+}
+
+.palavra {
+    position: absolute;
+    white-space: nowrap;
+    user-select: none;
+}
+
+/* Posições, cores e ângulos bagunçados */
+.p1 { top: 15%; left: 10%; color: #3b82f6; transform: rotate(-15deg); font-size: 1.5rem; } /* Azul */
+.p2 { top: 70%; left: 80%; color: #f97316; transform: rotate(10deg); font-size: 1.8rem; }  /* Laranja */
+.p3 { top: 20%; left: 75%; color: #ffffff; transform: rotate(25deg); font-size: 2rem; }    /* Branco */
+.p4 { top: 60%; left: 15%; color: #10b981; transform: rotate(-5deg); font-size: 1.6rem; }  /* Verde STEM */
+.p5 { top: 80%; left: 40%; color: #a855f7; transform: rotate(-20deg); font-size: 1.4rem; } /* Roxo */
+.p6 { top: 35%; left: 35%; color: #f59e0b; transform: rotate(15deg); font-size: 1.2rem; }  /* Amarelo */
+.p7 { top: 10%; left: 90%; color: #ef4444; transform: rotate(-25deg); font-size: 1.5rem; } /* Vermelho */
+.p8 { top: 85%; left: 60%; color: #0ea5e9; transform: rotate(5deg); font-size: 1.7rem; }   /* Azul Claro */
+.p9 { top: 40%; left: 5%; color: #ffffff; transform: rotate(30deg); font-size: 1.3rem; }   /* Branco */
+.p10 { top: 50%; left: 85%; color: #ec4899; transform: rotate(-10deg); font-size: 1.9rem; }/* Rosa */
+.p11 { top: 15%; left: 45%; color: #38b2ac; transform: rotate(-5deg); font-size: 1.4rem; } /* Verde Água */
+
+/* Elevação dos elementos centrais para ficarem acima do fundo */
+.tubo-animado, .titulos {
+    z-index: 2;
+    position: relative;
+}
+
+.titulos h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.8); /* Sombra para destacar no fundo */
+}
+
+.titulos h2 {
+    font-size: 1.2rem;
+    font-weight: 400;
+    opacity: 0.9;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+}
+
+/* Animação do Tubo de Ensaio SVG */
+.tubo-animado {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    padding: 15px;
+    transform: rotate(30deg); /* <--- INCLINAÇÃO DO TUBO PARA A DIREITA */
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.liquido {
+    animation: encher 3s infinite alternate ease-in-out;
+}
+
+.bolha {
+    animation: subir 2s infinite ease-in;
+}
+.b1 { animation-delay: 0s; animation-duration: 2s; }
+.b2 { animation-delay: 0.5s; animation-duration: 2.5s; }
+.b3 { animation-delay: 1s; animation-duration: 1.8s; }
+
+@keyframes encher {
+    0% { transform: translateY(5px); }
+    100% { transform: translateY(-2px); }
+}
+
+@keyframes subir {
+    0% { transform: translateY(0); opacity: 0; }
+    50% { opacity: 0.8; }
+    100% { transform: translateY(-30px); opacity: 0; }
+}
+
+/* =========================================
+   CORPO / MENU DE NAVEGAÇÃO (GRID)
+   ========================================= */
+.menu-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 4rem 10%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Estilo Base dos Cartões */
+.cartao-menu {
+    background-color: var(--cor-branca);
+    border-radius: 12px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--cor-texto);
+    box-shadow: var(--sombra-cartao);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    border-top: 5px solid transparent;
+}
+
+.cartao-menu:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--sombra-hover);
+}
+
+/* Hierarquia Visual dos Cartões */
+.cartao-menu.principal {
+    border-top-color: var(--cor-primaria);
+}
+
+.cartao-menu.secundario {
+    border-top-color: var(--cor-secundaria);
+    background-color: #fafafa;
+}
+
+.cartao-icone {
+    font-size: 3rem;
+}
+
+.cartao-menu h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.cartao-menu p {
+    font-size: 1rem;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+/* Responsividade Básica */
+@media (max-width: 768px) {
+    .titulos h1 { font-size: 1.6rem; }
+    .titulos h2 { font-size: 1rem; }
+    .menu-container { padding: 2rem 5%; }
+}

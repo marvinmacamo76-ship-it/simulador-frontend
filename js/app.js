@@ -83,6 +83,10 @@ function selecionarMolecula(id) {
     document.getElementById("info-formula").textContent = molecula.formula;
     document.getElementById("info-tipo").textContent = molecula.tipo;
     document.getElementById("info-geometria").textContent = molecula.geometria;
+    const elAngulos = document.getElementById("info-angulos");
+    if (elAngulos) elAngulos.textContent = molecula.angulosLigacao || "Não disponível";
+    const elPares = document.getElementById("info-pares");
+    if (elPares) elPares.textContent = molecula.paresIsolados || "Não disponível";
     document.getElementById("info-polaridade").textContent = molecula.polaridade;
     document.getElementById("info-detalhes").textContent = molecula.justificativaVSEPR;
     document.getElementById("info-mocambique").textContent = molecula.contextoMocambique;
@@ -277,36 +281,54 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!textoDigitado) return alert("Por favor, digite uma fórmula, nome ou código SMILES.");
 
             statusIa.style.display = 'block';
-            statusIa.innerText = "⏳ A procurar no PubChem...";
+            statusIa.innerText = "⏳ A traduzir e procurar no PubChem...";
             try {
+                const termoPesquisa = await traduzirParaIngles(textoDigitado);
+                
                 // 1. Validar e Buscar no PubChem
-                const pubchemData = await buscarMoleculaPubChem(textoDigitado);
+                const pubchemData = await buscarMoleculaPubChem(termoPesquisa);
                 if (!pubchemData) {
                     alert("A molécula não foi encontrada ou é impossível/inválida segundo a base de dados química.");
                     statusIa.style.display = 'none';
                     return;
                 }
 
+                // *** VERIFICAÇÃO DE DUPLICADOS ***
+                const cidStr = pubchemData.cid.toString();
+                const existeLocalmente = bibliotecaMoleculas.find(m => m.id === cidStr);
+                if (existeLocalmente) {
+                    alert(`A molécula '${existeLocalmente.nome}' (${existeLocalmente.formula}) já existe na base de dados! Apresentando-a agora...`);
+                    selecionarMolecula(cidStr);
+                    const select = document.getElementById("select-molecule");
+                    if (select) select.value = cidStr;
+                    
+                    modalOpcoes.style.display = 'none';
+                    zonaTextoMolecula.style.display = 'none';
+                    return; // Sai antes de gerar outra vez
+                }
+
                 // 2. Extrair o formato 3D e o Dipolo
                 statusIa.innerText = "⏳ A gerar formato 3D...";
                 const dados3D = await buscarDados3DPubChem(pubchemData.cid);
                 
-                // 3. Obter Explicação Didática da IA
-                statusIa.innerText = "⏳ A gerar explicação didática (Glinka/Atkins)...";
-                const explicacaoDidatica = await gerarExplicacaoIA(pubchemData.smiles || textoDigitado);
+                // 3. Obter Explicação Didática da IA (Estruturada)
+                statusIa.innerText = "⏳ A analisar estrutura com Inteligência Artificial...";
+                const dadosIA = await gerarExplicacaoIA(pubchemData.smiles || textoDigitado);
 
                 // 4. Construir Objeto da Nova Molécula
                 const novaMolecula = {
-                    id: pubchemData.cid.toString(),
+                    id: cidStr,
                     nome: textoDigitado.charAt(0).toUpperCase() + textoDigitado.slice(1),
                     formula: pubchemData.formula,
                     peso: pubchemData.peso,
                     polaridade: dados3D.dipole !== "Desconhecido" ? "Polar" : "Apolar",
                     dipolo: dados3D.dipole,
-                    tipo: "Indeterminado",
-                    geometria: "Automática",
-                    justificativaVSEPR: explicacaoDidatica,
-                    contextoMocambique: "Dados analisados automaticamente pelo sistema integrado.",
+                    tipo: dadosIA.tipo || "Indeterminado",
+                    geometria: dadosIA.geometria || "Automática",
+                    angulosLigacao: dadosIA.angulosLigacao || "Não disponível",
+                    paresIsolados: dadosIA.paresIsolados || "Não disponível",
+                    justificativaVSEPR: dadosIA.explicacaoDidatica || "Explicação não gerada",
+                    contextoMocambique: dadosIA.contextoMocambique || "Sem contexto gerado",
                     sdfText: dados3D.sdfText
                 };
 
@@ -321,6 +343,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById("info-formula").textContent = novaMolecula.formula;
                 document.getElementById("info-tipo").textContent = novaMolecula.tipo;
                 document.getElementById("info-geometria").textContent = novaMolecula.geometria;
+                const elAngs = document.getElementById("info-angulos");
+                if (elAngs) elAngs.textContent = novaMolecula.angulosLigacao;
+                const elPares = document.getElementById("info-pares");
+                if (elPares) elPares.textContent = novaMolecula.paresIsolados;
                 document.getElementById("info-polaridade").textContent = `${novaMolecula.polaridade} (Momento Dipolar: ${novaMolecula.dipolo})`;
                 document.getElementById("info-detalhes").textContent = novaMolecula.justificativaVSEPR;
                 document.getElementById("info-mocambique").textContent = novaMolecula.contextoMocambique;
@@ -365,6 +391,20 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem("geminiApiKey", geminiApiKey);
             modalIa.style.display = 'none';
             alert("Chave IA (Gemini) guardada com sucesso!");
+        });
+    }
+
+    // Modal de Guia de Instruções
+    const btnGuia = document.getElementById('btn-guia-instrucoes');
+    const modalGuia = document.getElementById('modal-guia');
+    const btnFecharGuia = document.getElementById('btn-fechar-guia');
+    
+    if(btnGuia && modalGuia) {
+        btnGuia.addEventListener('click', () => {
+            modalGuia.style.display = 'block';
+        });
+        btnFecharGuia.addEventListener('click', () => {
+            modalGuia.style.display = 'none';
         });
     }
 });
@@ -420,11 +460,32 @@ async function buscarDados3DPubChem(cid) {
     }
 }
 
-// 4. Gemini API Helper (Com Fallback para a Wikipedia)
+// Tradutor Automático
+async function traduzirParaIngles(texto) {
+    try {
+        const resp = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(texto)}&langpair=pt|en`);
+        const data = await resp.json();
+        if(data && data.responseData && data.responseData.translatedText) {
+            return data.responseData.translatedText;
+        }
+    } catch (e) {
+        console.error("Erro na tradução:", e);
+    }
+    return texto;
+}
+
+// 4. Gemini API Helper (Com Fallback)
 async function gerarExplicacaoIA(nomeOuFormula) {
-    // Se houver chave Gemini, usamos a IA avançada
     if (geminiApiKey) {
-        const prompt = `Aja como um professor universitário de Química. Explique didaticamente a molécula/composto "${nomeOuFormula}". Aborde a sua estrutura, geometria, propriedades e ligações usando como referência as obras "Físico-Química" de Atkins e "Química Geral" de Glinka. Inclua um parágrafo de aplicação ou contextualização industrial. Responda num texto limpo e direto, sem formatação exagerada.`;
+        const prompt = `Aja como um professor universitário de Química. Retorne um objeto JSON válido descrevendo a molécula/composto "${nomeOuFormula}". O JSON DEVE ter as seguintes chaves exatas e nenhuma outra formatação markdown:
+{
+  "tipo": "(ex: Orgânico, Inorgânico, Sal, Iónico, Elementar, etc)",
+  "geometria": "(ex: Linear, Angular, Tetraédrica, etc)",
+  "angulosLigacao": "(ex: 104.5°, 109.5°, 180°, etc)",
+  "paresIsolados": "(ex: 2 pares no átomo central, etc)",
+  "explicacaoDidatica": "(Explicação didática baseada em Atkins e Glinka detalhada)",
+  "contextoMocambique": "(Aplicação na indústria local de Moçambique)"
+}`;
         
         try {
             const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
@@ -437,29 +498,24 @@ async function gerarExplicacaoIA(nomeOuFormula) {
             
             const dados = await resp.json();
             if(dados.candidates && dados.candidates.length > 0) {
-                return dados.candidates[0].content.parts[0].text;
+                let textoRaw = dados.candidates[0].content.parts[0].text;
+                textoRaw = textoRaw.replace(/```json/g, "").replace(/```/g, "").trim();
+                return JSON.parse(textoRaw);
             }
         } catch(e) {
-            console.error("Erro ao contactar a IA Gemini:", e);
+            console.error("Erro ao contactar a IA Gemini ou parse JSON:", e);
         }
     }
     
-    // FALLBACK: Se não houver chave ou a IA falhar, usamos a Wikipédia gratuitamente!
-    try {
-        console.log("A procurar informações na Wikipédia para:", nomeOuFormula);
-        const wikiResp = await fetch(`https://pt.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(nomeOuFormula)}&format=json&origin=*`);
-        const wikiData = await wikiResp.json();
-        const pages = wikiData.query.pages;
-        const pageId = Object.keys(pages)[0];
-        
-        if (pageId !== "-1" && pages[pageId].extract) {
-            return `Fonte: Wikipédia.\n\n${pages[pageId].extract}\n\n(Para uma explicação didática baseada em Atkins e Glinka, configura a chave da API Gemini no painel.)`;
-        }
-    } catch(e) {
-        console.error("Erro ao contactar a Wikipédia:", e);
-    }
-
-    return "Não foi possível gerar a explicação. Adicione uma chave API do Gemini nas configurações ou verifique a sua ligação à internet.";
+    // FALLBACK
+    return {
+        tipo: "Indeterminado",
+        geometria: "Automática",
+        angulosLigacao: "Não disponível",
+        paresIsolados: "Não disponível",
+        explicacaoDidatica: "Não foi possível gerar a explicação completa por falta de chave API Gemini.",
+        contextoMocambique: "Sem contexto IA."
+    };
 }
 
 // 5. Salvar Nova Molécula no Backend
