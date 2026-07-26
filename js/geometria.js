@@ -341,24 +341,73 @@ function renderizarAngulos() {
   if (vizinhos.length < 2) return;
 
   const central = atomosAtuais[centralIdx];
+  const N_SEG    = 24;   // segmentos por arco
+  const R_ARC    = 0.65; // raio do arco a partir do átomo central
+  const R_CYL    = 0.04; // espessura dos cilindros do arco
+  const COR_ARCO = '#0ea5e9';
 
-  // Mostrar ângulo entre cada par de vizinhos
   for (let i = 0; i < vizinhos.length; i++) {
     for (let j = i + 1; j < vizinhos.length; j++) {
-      const ang = calcularAngulo(vizinhos[i], central, vizinhos[j]);
-      // Posição da label: ponto médio entre os dois vizinhos, deslocado para o centro
-      const mx = (vizinhos[i].x + vizinhos[j].x) / 2;
-      const my = (vizinhos[i].y + vizinhos[j].y) / 2;
-      const mz = (vizinhos[i].z + vizinhos[j].z) / 2;
-      const px = (mx + central.x) / 2;
-      const py = (my + central.y) / 2;
-      const pz = (mz + central.z) / 2;
+      const ang    = calcularAngulo(vizinhos[i], central, vizinhos[j]);
+      const angRad = ang * Math.PI / 180;
 
+      // Vectores unitários de central → vizinho
+      const u1 = normalize3D({
+        x: vizinhos[i].x - central.x,
+        y: vizinhos[i].y - central.y,
+        z: vizinhos[i].z - central.z,
+      });
+      const u2 = normalize3D({
+        x: vizinhos[j].x - central.x,
+        y: vizinhos[j].y - central.y,
+        z: vizinhos[j].z - central.z,
+      });
+
+      // Slerp entre u1 e u2 para gerar os pontos do arco
+      const sinTot = Math.sin(angRad) || 1e-9;
+      const arcPts = [];
+      for (let k = 0; k <= N_SEG; k++) {
+        const t  = k / N_SEG;
+        const s1 = Math.sin((1 - t) * angRad) / sinTot;
+        const s2 = Math.sin(t       * angRad) / sinTot;
+        const pt = {
+          x: central.x + (s1 * u1.x + s2 * u2.x) * R_ARC,
+          y: central.y + (s1 * u1.y + s2 * u2.y) * R_ARC,
+          z: central.z + (s1 * u1.z + s2 * u2.z) * R_ARC,
+        };
+        arcPts.push(pt);
+      }
+
+      // Desenhar o arco como cilindros finos
+      for (let k = 0; k < N_SEG; k++) {
+        viewer.addCylinder({
+          start:   arcPts[k],
+          end:     arcPts[k + 1],
+          radius:  R_CYL,
+          color:   COR_ARCO,
+          fromCap: 0,
+          toCap:   0,
+        });
+      }
+
+      // Label junto ao ponto médio do arco, deslocada para fora
+      const mid    = arcPts[Math.round(N_SEG / 2)];
+      const outDir = normalize3D({
+        x: mid.x - central.x,
+        y: mid.y - central.y,
+        z: mid.z - central.z,
+      });
+      const OFFSET = 0.38;
       viewer.addLabel(`${ang.toFixed(1)}°`, {
-        position:       { x: px, y: py, z: pz },
-        backgroundColor:'rgba(14,165,233,0.85)',
-        fontColor:      '#ffffff',
-        fontSize:       11,
+        position: {
+          x: mid.x + outDir.x * OFFSET,
+          y: mid.y + outDir.y * OFFSET,
+          z: mid.z + outDir.z * OFFSET,
+        },
+        backgroundColor: 'rgba(0,0,0,0)',
+        backgroundOpacity: 0,
+        fontColor:      COR_ARCO,
+        fontSize:       12,
         fontStyle:      'bold',
         borderThickness: 0,
         inFront:        true,
