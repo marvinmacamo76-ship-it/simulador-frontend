@@ -343,8 +343,8 @@ function renderizarAngulos() {
   const central = atomosAtuais[centralIdx];
   const N_SEG    = 24;   // segmentos por arco
   const R_ARC    = 0.65; // raio do arco a partir do átomo central
-  const R_CYL    = 0.04; // espessura dos cilindros do arco
-  const COR_ARCO = '#0ea5e9';
+  const R_CYL    = 0.03; // espessura dos cilindros do arco
+  const COR_ARCO = '#cccccc';
 
   for (let i = 0; i < vizinhos.length; i++) {
     for (let j = i + 1; j < vizinhos.length; j++) {
@@ -406,8 +406,8 @@ function renderizarAngulos() {
         },
         backgroundColor: 'rgba(0,0,0,0)',
         backgroundOpacity: 0,
-        fontColor:      COR_ARCO,
-        fontSize:       12,
+        fontColor:      '#ffffff',
+        fontSize:       13,
         fontStyle:      'bold',
         borderThickness: 0,
         inFront:        true,
@@ -512,32 +512,31 @@ function renderizarParesSolitarios() {
   const lpPositions = calcularPosicoesParesSolitarios(central, bondVecs, nLP);
 
   lpPositions.forEach(lp => {
-    // Dois pequenos lóbulos por par solitário (como no PhET)
     const lpVec = normalize3D({ x: lp.x - central.x, y: lp.y - central.y, z: lp.z - central.z });
 
-    // Encontra um vetor perpendicular ao lpVec para separar os dois eletrões
+    // Encontra um vetor perpendicular ao lpVec para separar os dois pontos
     const arb = Math.abs(lpVec.x) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
     const perp = normalize3D(cross3D(lpVec, arb));
-    const sep = 0.22; // separação entre os dois eletrões do par
+    const sep = 0.20; // separação entre os dois eletrões do par
 
     const e1 = { x: lp.x + perp.x * sep, y: lp.y + perp.y * sep, z: lp.z + perp.z * sep };
     const e2 = { x: lp.x - perp.x * sep, y: lp.y - perp.y * sep, z: lp.z - perp.z * sep };
 
-    // Esfera translúcida de fundo (envelope do par)
+    // Grande esfera translúcida cinzenta (envelope do par)
     viewer.addSphere({
       center: lp,
-      radius: 0.40,
-      color: '#60a5fa',
-      opacity: 0.22,
+      radius: 0.55,
+      color: '#999999',
+      opacity: 0.30,
     });
 
-    // Dois eletrões do par como esferas menores
+    // Dois pontos amarelos dentro da esfera (representam os dois eletrões)
     [e1, e2].forEach(e => {
       viewer.addSphere({
         center: e,
-        radius: 0.18,
-        color: '#93c5fd',
-        opacity: 0.85,
+        radius: 0.10,
+        color: '#ffee44',
+        opacity: 0.95,
       });
     });
   });
