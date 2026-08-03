@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polaridade Molecular | STEM Licungo</title>
+  <script src="https://cdn.jsdelivr.net/npm/3dmol@latest/build/3Dmol-min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-app:      #0f172a;
+      --bg-panel:    #1e293b;
+      --bg-card:     #273549;
+      --bg-card-h:   #2f4060;
+      --bg-viewer:   #000000;
+      --accent:      #0ea5e9;
+      --accent2:     #f59e0b;
+      --accent3:     #10b981;
+      --danger:      #ef4444;
+      --text:        #e2e8f0;
+      --text-muted:  #94a3b8;
+      --border:      #334155;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg-app);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      background: var(--bg-panel);
+      border-bottom: 3px solid var(--accent);
+      padding: 0 1.2rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .navbar a.btn-nav {
+      text-decoration: none;
+      background: rgba(14,165,233,0.12);
+      color: var(--accent);
+      border: 1px solid rgba(14,165,233,0.3);
+      padding: 0.35rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .navbar a.btn-nav:hover { background: rgba(14,165,233,0.25); }
+    .navbar .titulo-nav {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.3px;
+      flex: 1;
+    }
+    .navbar .titulo-nav span { color: var(--accent); }
+
+    /* ── STATUS BAR ── */
+    #status-bar {
+      display: none;
+      padding: 0.45rem 1.2rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    #status-bar.status-ok      { background:#065f46; color:#6ee7b7; }
+    #status-bar.status-erro    { background:#7f1d1d; color:#fca5a5; }
+    #status-bar.status-loading { background:#1e3a5f; color:#93c5fd; }
+
+    /* ── MAIN LAYOUT ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr 300px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── LEFT PANEL ── */
+    .painel-esq {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .painel-titulo {
+      padding: 0.8rem 1rem 0.6rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    /* Search */
+    .busca-mol {
+      padding: 0.6rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .busca-mol input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.45rem 0.7rem;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .busca-mol input:focus { border-color: var(--accent); }
+    .busca-mol input::placeholder { color: var(--text-muted); }
+
+    /* Category tabs */
+    .categorias {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .cat-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.28rem 0.55rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .cat-btn:hover  { border-color: var(--accent); color: var(--accent); }
+    .cat-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Molecule list */
+    #lista-moleculas {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.4rem;
+    }
+    #lista-moleculas::-webkit-scrollbar { width: 4px; }
+    #lista-moleculas::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .mol-card {
+      padding: 0.55rem 0.7rem;
+      border-radius: 7px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      margin-bottom: 3px;
+    }
+    .mol-card:hover  { background: var(--bg-card-h); border-color: var(--border); }
+    .mol-card.ativa  { background: rgba(14,165,233,0.15); border-color: var(--accent); }
+    .mol-card .mol-nome   { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+    .mol-card .mol-formula{ font-size: 0.78rem; color: var(--text-muted); font-family: monospace; }
+
+    /* ── CENTER: VIEWER ── */
+    .viewer-wrap {
+      position: relative;
+      background: var(--bg-viewer);
+      overflow: hidden;
+    }
+    #viewer-container {
+      width: 100%;
+      height: 100%;
+    }
+    /* Sem WebGL */
+    .webgl-fallback {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 1rem;
+      color: var(--text-muted);
+    }
+    .webgl-fallback svg { opacity: 0.4; }
+    .webgl-fallback p   { font-size: 0.95rem; text-align: center; max-width: 280px; }
+
+    /* Overlay badge polar/apolar */
+    #overlay-polaridade {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      display: none;
+    }
+    #overlay-polaridade.polar  { background: rgba(239,68,68,0.85); color: #fff; }
+    #overlay-polaridade.apolar { background: rgba(16,185,129,0.85); color: #fff; }
+
+    /* Electric field overlay */
+    #campo-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: none;
+      overflow: hidden;
+    }
+    #campo-overlay.ativo { display: block; }
+    .campo-linha {
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: rgba(14,165,233,0.18);
+      animation: campo-pulso 2.5s ease-in-out infinite;
+    }
+    @keyframes campo-pulso {
+      0%,100% { opacity: 0.15; }
+      50%      { opacity: 0.45; }
+    }
+    /* Plates */
+    .placa {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+    .placa.neg { left: 0; background: linear-gradient(to right, rgba(59,130,246,0.12), transparent); }
+    .placa.pos { right: 0; background: linear-gradient(to left, rgba(239,68,68,0.12), transparent); }
+    .placa-label {
+      font-size: 1.1rem;
+      font-weight: 900;
+      opacity: 0.5;
+    }
+    .placa.neg .placa-label { color: #3b82f6; }
+    .placa.pos .placa-label { color: #ef4444; }
+
+    /* Molecule name on viewer */
+    #viewer-mol-nome {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* ── RIGHT PANEL ── */
+    .painel-dir {
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .painel-dir::-webkit-scrollbar { width: 4px; }
+    .painel-dir::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .secao {
+      border-bottom: 1px solid var(--border);
+      padding: 1rem;
+    }
+    .secao-titulo {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    /* Checkboxes */
+    .opcao-visual {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .opcao-visual:hover { background: rgba(255,255,255,0.03); }
+    .opcao-visual input[type=checkbox] {
+      width: 16px; height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .opcao-visual .opt-label {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text);
+      flex: 1;
+    }
+    .opt-cor {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Toggle campo elétrico */
+    .campo-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.6rem;
+    }
+    .campo-label { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+    .toggle-wrap {
+      position: relative;
+      width: 42px; height: 22px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .toggle-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 999px;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      left: 3px; top: 3px;
+      width: 16px; height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-wrap input:checked + .toggle-slider { background: var(--accent); }
+    .toggle-wrap input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* Análise */
+    .analise-vazio {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 0.88rem;
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .analise-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .analise-item {
+      background: var(--bg-card);
+      border-radius: 7px;
+      padding: 0.55rem 0.7rem;
+    }
+    .analise-item.span2 { grid-column: span 2; }
+    .analise-item .ai-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+    .analise-item .ai-valor {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Polar/Apolar badge */
+    #badge-polaridade {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    #badge-polaridade.polar  { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+    #badge-polaridade.apolar { background: rgba(16,185,129,0.2); color: #34d399; border: 1px solid rgba(16,185,129,0.4); }
+
+    /* Legenda EN */
+    .legenda-en {
+      margin-top: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+    }
+    .legenda-en .grad-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #3b82f6, #ffffff, #ef4444);
+    }
+    .legenda-en span { color: var(--text-muted); white-space: nowrap; }
+
+    /* Explicação polaridade */
+    #explicacao-polar {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-top: 0.5rem;
+    }
+
+    /* Eletronegatividade dos átomos */
+    #tabela-en { margin-top: 0.6rem; }
+    .en-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid rgba(51,65,85,0.5);
+      font-size: 0.83rem;
+    }
+    .en-row:last-child { border-bottom: none; }
+    .en-elem {
+      width: 24px; height: 24px;
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+    .en-nome  { flex: 1; color: var(--text-muted); }
+    .en-valor { font-weight: 600; }
+    .en-bar-wrap { width: 60px; background: var(--bg-card); border-radius: 3px; height: 6px; overflow: hidden; }
+    .en-bar { height: 100%; border-radius: 3px; background: var(--accent); }
+
+    /* ── RESPONSIVE (tablet) ── */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+      .painel-esq { display: none; }
+      .painel-dir { max-height: 260px; }
+      body { overflow: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <a href="index.html" class="btn-nav">← Início</a>
+  <div class="titulo-nav">🧲 Polaridade <span>Molecular</span></div>
+  <a href="biblioteca.html" class="btn-nav">📚 Biblioteca</a>
+  <a href="geometria.html" class="btn-nav">🔬 Geometria 3D</a>
+</header>
+
+<!-- STATUS BAR -->
+<div id="status-bar"></div>
+
+<!-- LAYOUT PRINCIPAL -->
+<div class="layout">
+
+  <!-- ══ PAINEL ESQUERDO: Moléculas ══ -->
+  <aside class="painel-esq">
+    <div class="painel-titulo">Selecionar Molécula</div>
+
+    <div class="busca-mol">
+      <input id="input-busca" type="text" placeholder="🔍  Pesquisar molécula…" autocomplete="off">
+    </div>
+
+    <div class="categorias">
+      <button class="cat-btn active" data-cat="inorganicas">Inorg.</button>
+      <button class="cat-btn" data-cat="organicas">Org.</button>
+      <button class="cat-btn" data-cat="elementares">Elem.</button>
+      <button class="cat-btn" data-cat="ionicas">Iônicas</button>
+      <button class="cat-btn" data-cat="complexas">Compl.</button>
+    </div>
+
+    <div id="lista-moleculas"></div>
+  </aside>
+
+  <!-- ══ CENTRO: Visualizador 3D ══ -->
+  <section class="viewer-wrap">
+    <div id="viewer-container"></div>
+
+    <!-- Fallback sem WebGL -->
+    <div class="webgl-fallback" id="webgl-fallback">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>Visualização 3D indisponível. O seu navegador não suporta WebGL.</p>
+    </div>
+
+    <!-- Campo elétrico (overlay decorativo) -->
+    <div id="campo-overlay">
+      <div class="placa neg"><span class="placa-label">−</span></div>
+      <div class="placa pos"><span class="placa-label">+</span></div>
+    </div>
+
+    <!-- Badge polar/apolar -->
+    <div id="overlay-polaridade"></div>
+
+    <!-- Nome da molécula -->
+    <div id="viewer-mol-nome"></div>
+  </section>
+
+  <!-- ══ PAINEL DIREITO: Controlos + Análise ══ -->
+  <aside class="painel-dir">
+
+    <!-- Visualização -->
+    <div class="secao">
+      <div class="secao-titulo">Visualização</div>
+
+      <label class="opcao-visual">
+        <input type="checkbox" id="chk-dipol-lig" checked>
+        <div class="opt-cor" style="background:#f59e0b"></div>
+        <span class="opt-label">Dipolos de Ligação</span>
+      </label>
+
+      <label class="opcao-visual">
+        <input type="checkbox" id="chk-dipol-mol" checked>
+        <div class="opt-cor" style="background:#f97316"></div>
+        <span class="opt-label">Dipolo Molecular (μ)</span>
+      </label>
+
+      <label class="opcao-visual">
+        <input type="checkbox" id="chk-cargas">
+        <div class="opt-cor" style="background:linear-gradient(to right,#3b82f6,#ef4444); border-radius:50%;"></div>
+        <span class="opt-label">Cargas Parciais (δ)</span>
+      </label>
+
+      <label class="opcao-visual">
+        <input type="checkbox" id="chk-superficie">
+        <div class="opt-cor" style="background:linear-gradient(to right,#3b82f6,#fff,#ef4444); border-radius:50%;"></div>
+        <span class="opt-label">Superfície Eletrostática</span>
+      </label>
+    </div>
+
+    <!-- Campo Elétrico -->
+    <div class="secao">
+      <div class="secao-titulo">Campo Elétrico</div>
+      <div class="campo-row">
+        <span class="campo-label">⚡ Ativar Campo Elétrico</span>
+        <label class="toggle-wrap">
+          <input type="checkbox" id="chk-campo">
+          <div class="toggle-slider"></div>
+        </label>
+      </div>
+      <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem; line-height:1.5;">
+        Visualiza como um campo elétrico externo interage com o dipolo molecular.
+      </p>
+    </div>
+
+    <!-- Análise de Polaridade -->
+    <div class="secao">
+      <div class="secao-titulo">Análise de Polaridade</div>
+      <div id="analise-conteudo">
+        <p class="analise-vazio">Selecione uma molécula para ver a análise.</p>
+      </div>
+    </div>
+
+    <!-- Eletronegatividade -->
+    <div class="secao">
+      <div class="secao-titulo">Eletronegatividade dos Átomos</div>
+      <div class="legenda-en">
+        <span>δ+ baixa</span>
+        <div class="grad-bar"></div>
+        <span>alta δ−</span>
+      </div>
+      <div id="tabela-en">
+        <p class="analise-vazio" style="margin-top:0.5rem;">Carregue uma molécula.</p>
+      </div>
+    </div>
+
+    <!-- Conceito TREPV -->
+    <div class="secao">
+      <div class="secao-titulo">Conceito TREPV / VSEPR</div>
+      <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.6;">
+        A <strong style="color:var(--text)">Teoria de Repulsão dos Pares de Eletrões da Valência</strong> determina a geometria molecular: os pares eletrônicos (ligantes e livres) afastam-se ao máximo, definindo o ângulo de ligação e a simetria da molécula.<br><br>
+        Moléculas <strong style="color:#f87171">polares</strong> possuem distribuição assimétrica de carga, com vetor dipolo resultante ≠ 0.<br>
+        Moléculas <strong style="color:#34d399">apolares</strong> têm dipolos que se cancelam por simetria.
+      </p>
+    </div>
+
+  </aside>
+</div>
+
+<script src="js/polaridade.js"></script>
+</body>
+</html>
