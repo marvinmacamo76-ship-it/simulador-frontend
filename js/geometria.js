@@ -517,26 +517,32 @@ function renderizarParesSolitarios() {
     // Encontra um vetor perpendicular ao lpVec para separar os dois pontos
     const arb = Math.abs(lpVec.x) < 0.9 ? { x: 1, y: 0, z: 0 } : { x: 0, y: 1, z: 0 };
     const perp = normalize3D(cross3D(lpVec, arb));
-    const sep = 0.20; // separação entre os dois eletrões do par
+    const sep  = 0.17; // separação lateral entre os dois eletrões
 
-    const e1 = { x: lp.x + perp.x * sep, y: lp.y + perp.y * sep, z: lp.z + perp.z * sep };
-    const e2 = { x: lp.x - perp.x * sep, y: lp.y - perp.y * sep, z: lp.z - perp.z * sep };
+    // Base na face exterior da esfera cinzenta (voltada para fora do átomo central)
+    const faceOuter = {
+      x: lp.x + lpVec.x * 0.32,
+      y: lp.y + lpVec.y * 0.32,
+      z: lp.z + lpVec.z * 0.32,
+    };
+    const e1 = { x: faceOuter.x + perp.x * sep, y: faceOuter.y + perp.y * sep, z: faceOuter.z + perp.z * sep };
+    const e2 = { x: faceOuter.x - perp.x * sep, y: faceOuter.y - perp.y * sep, z: faceOuter.z - perp.z * sep };
 
-    // Grande esfera translúcida cinzenta (envelope do par)
+    // Grande esfera translúcida cinzenta (envelope do par solitário)
     viewer.addSphere({
       center: lp,
       radius: 0.55,
-      color: '#999999',
-      opacity: 0.30,
+      color: '#aaaaaa',
+      opacity: 0.28,
     });
 
-    // Dois pontos amarelos dentro da esfera (representam os dois eletrões)
+    // Dois pontos amarelos na face exterior da esfera (sempre visíveis)
     [e1, e2].forEach(e => {
       viewer.addSphere({
         center: e,
-        radius: 0.10,
-        color: '#ffee44',
-        opacity: 0.95,
+        radius: 0.13,
+        color: '#ffee00',
+        opacity: 1.0,
       });
     });
   });
@@ -591,7 +597,7 @@ function calcularPosicoesParesSolitarios(central, bondVecs, nLP) {
   }
 
   // Converter de vectores unitários para posições no espaço
-  const lpDist = 1.05; // distância ao átomo central (Å)
+  const lpDist = 0.82; // distância ao átomo central (Å) — encostada ao átomo
   return lpVecs.map(v => ({
     x: central.x + v.x * lpDist,
     y: central.y + v.y * lpDist,
