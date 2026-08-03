@@ -149,19 +149,19 @@ app.get('/api/pubchem/descricao/:query', async (req, res) => {
   }
 });
 
-// Proxy: Busca académica (Semantic Scholar)
+// Proxy: Busca académica (CrossRef — gratuito, sem limite de taxa)
 app.get('/api/scholar/:query', async (req, res) => {
   const query = encodeURIComponent(req.params.query);
   try {
     const response = await fetch(
-      `https://api.semanticscholar.org/graph/v1/paper/search?query=${query}&fields=title,authors,year,abstract,url,externalIds&limit=4`,
-      { headers: { 'User-Agent': 'STEM-Licungo/1.0 (educational project)' } }
+      `https://api.crossref.org/works?query=${query}&rows=4&select=title,author,published,abstract,URL,DOI,container-title`,
+      { headers: { 'User-Agent': 'STEM-Licungo/1.0 (stemolicungo@unirovuma.ac.mz)' } }
     );
     if (!response.ok) return res.status(404).json({ erro: 'Sem resultados.' });
     const data = await response.json();
     res.json(data);
   } catch (err) {
-    console.error('[Scholar]', err.message);
+    console.error('[CrossRef]', err.message);
     res.status(500).json({ erro: 'Falha ao pesquisar literatura.' });
   }
 });

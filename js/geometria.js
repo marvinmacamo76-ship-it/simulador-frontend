@@ -737,10 +737,11 @@ async function buscarLiteratura(query, info) {
 
   let html = '';
 
-  // Descrição do PubChem
+  // Descrição do PubChem (procura o primeiro item que contenha Description)
   if (descRes.status === 'fulfilled' && descRes.value.ok) {
     const descData = await descRes.value.json().catch(() => null);
-    const inf = descData?.InformationList?.Information?.[0];
+    const lista = descData?.InformationList?.Information || [];
+    const inf = lista.find(item => item.Description);
     if (inf?.Description) {
       html += `
         <div class="lit-secao">
@@ -751,20 +752,25 @@ async function buscarLiteratura(query, info) {
     }
   }
 
-  // Artigos do Semantic Scholar
+  // Artigos do CrossRef
   if (scholarRes.status === 'fulfilled' && scholarRes.value.ok) {
     const sData = await scholarRes.value.json().catch(() => null);
-    const artigos = sData?.data?.filter(p => p.title)?.slice(0, 3) || [];
+    const artigos = (sData?.message?.items || []).filter(p => p.title?.length).slice(0, 3);
     if (artigos.length > 0) {
       html += '<div class="lit-secao"><h5>📚 Artigos Científicos Relacionados</h5>';
       artigos.forEach(a => {
-        const autores = a.authors?.slice(0, 2).map(x => x.name).join(', ') || '';
+        const titulo  = Array.isArray(a.title) ? a.title[0] : a.title;
+        const autores = (a.author || []).slice(0, 2)
+          .map(x => [x.given, x.family].filter(Boolean).join(' ')).join(', ');
+        const ano     = a.published?.['date-parts']?.[0]?.[0] || '';
+        const revista = Array.isArray(a['container-title']) ? a['container-title'][0] : '';
+        const resumo  = a.abstract ? a.abstract.replace(/<[^>]*>/g, '').substring(0, 220) : '';
         html += `
           <div class="lit-artigo">
-            <strong>${a.title}</strong>
-            <span class="lit-meta">${autores}${a.year ? ' · ' + a.year : ''}</span>
-            ${a.abstract ? `<p>${a.abstract.substring(0, 220)}…</p>` : ''}
-            ${a.url ? `<a href="${a.url}" target="_blank" class="lit-link">→ Ler artigo</a>` : ''}
+            <strong>${titulo}</strong>
+            <span class="lit-meta">${autores}${ano ? ' · ' + ano : ''}${revista ? ' · <em>' + revista + '</em>' : ''}</span>
+            ${resumo ? `<p>${resumo}…</p>` : ''}
+            ${a.URL ? `<a href="${a.URL}" target="_blank" class="lit-link">→ Ler artigo (DOI)</a>` : ''}
           </div>`;
       });
       html += '</div>';
