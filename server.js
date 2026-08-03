@@ -82,6 +82,47 @@ const BIBLIOTECA = {
 };
 
 // =============================================================================
+// TRADUTOR (MyMemory — gratuito, sem chave de API)
+// =============================================================================
+
+/**
+ * Traduz um texto para português europeu usando a API MyMemory.
+ * Limita a 490 caracteres por chamada (limite da API gratuita).
+ * Em caso de falha retorna o texto original sem bloquear.
+ */
+async function traduzirParaPT(texto) {
+  if (!texto || texto.trim().length === 0) return texto;
+  // Divide textos longos em blocos de 490 caracteres (por frases quando possível)
+  const blocos = [];
+  let restante = texto.trim();
+  while (restante.length > 0) {
+    if (restante.length <= 490) {
+      blocos.push(restante);
+      break;
+    }
+    // Tenta cortar na última frase dentro dos 490 caracteres
+    const corte = restante.lastIndexOf('. ', 490);
+    const pos   = corte > 50 ? corte + 1 : 490;
+    blocos.push(restante.substring(0, pos).trim());
+    restante = restante.substring(pos).trim();
+  }
+  try {
+    const partes = await Promise.all(blocos.map(async bloco => {
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(bloco)}&langpair=en|pt-PT`;
+      const r   = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!r.ok) return bloco;
+      const d = await r.json();
+      // Ignora se a tradução devolveu erro de quota (começa com "MYMEMORY")
+      const t = d?.responseData?.translatedText || bloco;
+      return t.startsWith('MYMEMORY') ? bloco : t;
+    }));
+    return partes.join(' ');
+  } catch {
+    return texto; // em caso de timeout/erro, devolve original
+  }
+}
+
+// =============================================================================
 // ROTAS DA API
 // =============================================================================
 
@@ -133,7 +174,7 @@ app.get('/api/pubchem/info/:query', async (req, res) => {
   }
 });
 
-// Proxy: Descrição do composto no PubChem
+// Proxy: Descrição do composto no PubChem (com tradução automática para PT)
 app.get('/api/pubchem/descricao/:query', async (req, res) => {
   const query = encodeURIComponent(req.params.query);
   try {
@@ -142,6 +183,15 @@ app.get('/api/pubchem/descricao/:query', async (req, res) => {
     );
     if (!response.ok) return res.status(404).json({ erro: 'Descrição não disponível.' });
     const data = await response.json();
+
+    // Traduz a descrição de cada item que a contenha
+    const lista = data?.InformationList?.Information || [];
+    await Promise.all(lista.map(async item => {
+      if (item.Description) {
+        item.Description = await traduzirParaPT(item.Description);
+      }
+    }));
+
     res.json(data);
   } catch (err) {
     console.error('[PubChem Desc]', err.message);
@@ -149,7 +199,7 @@ app.get('/api/pubchem/descricao/:query', async (req, res) => {
   }
 });
 
-// Proxy: Busca académica (CrossRef — gratuito, sem limite de taxa)
+// Proxy: Busca académica (CrossRef — gratuito, sem limite de taxa, com tradução para PT)
 app.get('/api/scholar/:query', async (req, res) => {
   const query = encodeURIComponent(req.params.query);
   try {
@@ -159,6 +209,26 @@ app.get('/api/scholar/:query', async (req, res) => {
     );
     if (!response.ok) return res.status(404).json({ erro: 'Sem resultados.' });
     const data = await response.json();
+
+    // Traduz títulos e resumos em paralelo
+    const items = data?.message?.items || [];
+    await Promise.all(items.map(async item => {
+      const tarefas = [];
+      if (Array.isArray(item.title) && item.title[0]) {
+        tarefas.push(
+          traduzirParaPT(item.title[0]).then(t => { item.title[0] = t; })
+        );
+      }
+      if (item.abstract) {
+        // Remove tags HTML que o CrossRef inclui nos abstracts
+        const semTags = item.abstract.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        tarefas.push(
+          traduzirParaPT(semTags).then(t => { item.abstract = t; })
+        );
+      }
+      await Promise.all(tarefas);
+    }));
+
     res.json(data);
   } catch (err) {
     console.error('[CrossRef]', err.message);
