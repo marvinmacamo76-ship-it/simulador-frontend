@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Descrição e Arquitetura | STEM Licungo</title>
     <style>
-        /* =========================================
-           ESTILOS DA PÁGINA DE DESCRIÇÃO
-           ========================================= */
         * {
             margin: 0;
             padding: 0;
@@ -22,7 +19,6 @@
             padding-bottom: 3rem;
         }
 
-        /* Barra Superior com Botão Voltar */
         .topo-navegacao {
             background: linear-gradient(135deg, #2b6cb0, #38b2ac);
             padding: 1.5rem 2rem;
@@ -51,9 +47,8 @@
             transform: translateY(-2px);
         }
 
-        /* Conteúdo Principal */
         .conteudo-container {
-            max-width: 900px;
+            max-width: 920px;
             margin: 3rem auto;
             background: #ffffff;
             padding: 3rem;
@@ -70,7 +65,7 @@
         }
 
         .subtitulo-doc {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             color: #4a5568;
             margin-bottom: 2.5rem;
             font-style: italic;
@@ -78,9 +73,9 @@
 
         h2 {
             color: #2d3748;
-            font-size: 1.4rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
+            font-size: 1.35rem;
+            margin-top: 2.2rem;
+            margin-bottom: 0.9rem;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -89,88 +84,241 @@
         p {
             margin-bottom: 1.2rem;
             color: #4a5568;
-            font-size: 1.05rem;
+            font-size: 1.02rem;
             text-align: justify;
         }
 
-        ul {
+        ul, ol {
             margin-bottom: 1.5rem;
-            padding-left: 1.5rem;
+            padding-left: 1.6rem;
             color: #4a5568;
         }
 
         li {
-            margin-bottom: 0.5rem;
-            font-size: 1.05rem;
+            margin-bottom: 0.55rem;
+            font-size: 1.02rem;
         }
 
         .destaque-caixa {
-            background-color: #f8fafc;
-            border-left: 4px solid #2b6cb0;
-            padding: 1.2rem;
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 1.2rem 1.4rem;
             border-radius: 0 8px 8px 0;
             margin: 1.5rem 0;
         }
 
-        /* Responsividade para telemóveis */
+        .destaque-caixa p {
+            margin-bottom: 0;
+        }
+
+        /* Tabela de funcionalidades */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2rem 0 1.8rem;
+            font-size: 0.98rem;
+        }
+
+        thead th {
+            background: #2b6cb0;
+            color: #fff;
+            padding: 0.7rem 1rem;
+            text-align: left;
+        }
+
+        tbody td {
+            padding: 0.65rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #4a5568;
+            vertical-align: top;
+        }
+
+        tbody tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+
+        /* Badges de tecnologia */
+        .badge {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 0.15rem 0.6rem;
+            border-radius: 999px;
+            margin: 0.15rem 0.15rem 0.15rem 0;
+            white-space: nowrap;
+        }
+
+        .badge.verde  { background: #dcfce7; color: #166534; }
+        .badge.laranja{ background: #ffedd5; color: #9a3412; }
+        .badge.roxo   { background: #f3e8ff; color: #6b21a8; }
+
+        /* Responsivo */
         @media (max-width: 768px) {
-            .conteudo-container {
-                margin: 1rem;
-                padding: 1.5rem;
-            }
-            h1 {
-                font-size: 1.6rem;
-            }
+            .conteudo-container { margin: 1rem; padding: 1.5rem; }
+            h1 { font-size: 1.6rem; }
+            table { font-size: 0.88rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- BARRA SUPERIOR COM BOTÃO DE RETORNO -->
     <header class="topo-navegacao">
         <a href="index.html" class="btn-voltar">
             <span>←</span> Voltar ao Menu Inicial
         </a>
     </header>
 
-    <!-- CONTEÚDO DA DESCRIÇÃO -->
     <main class="conteudo-container">
-        <h1>Descrição e Fundamentação do Projeto</h1>
-        <p class="subtitulo-doc">Portal Interativo de Geometria Molecular e Polaridade | Abordagem STEM</p>
+        <h1>Descrição e Arquitetura do Projeto</h1>
+        <p class="subtitulo-doc">Simulador Interativo de Geometria Molecular e Polaridade — Universidade Licungo · Abordagem STEM</p>
 
+        <!-- ═══ 1. O QUE É ═══ -->
         <section>
             <h2>🎯 O que é e para que serve?</h2>
             <p>
-                Este aplicativo é uma plataforma educacional interativa desenvolvida para apoiar o ensino e a aprendizagem de Química. O seu principal objetivo é transformar conceitos abstratos de <strong>Geometria Molecular</strong> (baseados na Teoria de Repulsão dos Pares de Elétrons da Valência - TRPEV) e <strong>Polaridade</strong> em experiências visuais, dinâmicas e acessíveis para estudantes e professores.
+                O <strong>STEM Licungo</strong> é uma plataforma educacional web interativa desenvolvida para apoiar o ensino e a aprendizagem de Química. O seu principal objetivo é transformar conceitos abstratos de <strong>Geometria Molecular</strong> — baseados na Teoria de Repulsão dos Pares de Eletrões da Valência (TREPV/VSEPR) — em experiências visuais tridimensionais, dinâmicas e acessíveis para estudantes e professores.
             </p>
             <div class="destaque-caixa">
-                <p><strong>Missão Educacional:</strong> Superar barreiras de laboratório físico, permitindo que qualquer estudante visualize estruturas químicas tridimensionais e bidimensionais em tempo real diretamente no navegador, sem custos adicionais.</p>
+                <p><strong>Missão Educacional:</strong> Eliminar a barreira do laboratório físico, permitindo que qualquer estudante visualize estruturas químicas em 3D em tempo real diretamente no navegador, sem instalações, sem custos adicionais e com dados reais do PubChem.</p>
             </div>
         </section>
 
+        <!-- ═══ 2. CONTEXTO ═══ -->
         <section>
             <h2>🇲🇿 Contexto Académico e Abordagem STEM</h2>
             <p>
-                Desenvolvido no âmbito das iniciativas académicas da <strong>Universidade Licungo</strong> em Moçambique, o projeto aplica a metodologia <strong>STEM</strong> (Ciência, Tecnologia, Engenharia e Matemática), integrando o raciocínio científico da química com o desenvolvimento de software moderno. A ferramenta foi concebida para responder às reais necessidades pedagógicas do contexto moçambicano, promovendo a literacia digital e científica nas salas de aula.
+                Desenvolvido no âmbito das iniciativas académicas da <strong>Universidade Licungo</strong> em Moçambique, o projeto aplica a metodologia <strong>STEM</strong> (Ciência, Tecnologia, Engenharia e Matemática), integrando o raciocínio científico da Química com o desenvolvimento de software moderno. A ferramenta foi concebida para responder às reais necessidades pedagógicas do contexto moçambicano, promovendo a literacia digital e científica nas salas de aula do ensino superior e secundário.
             </p>
         </section>
 
+        <!-- ═══ 3. FUNCIONALIDADES ═══ -->
         <section>
-            <h2>⚙️ Arquitetura de Software e Ferramentas Tecnológicas</h2>
-            <p>
-                A plataforma foi construída utilizando tecnologias web modernas de alto desempenho, destacando-se:
-            </p>
+            <h2>✨ Funcionalidades Atuais</h2>
+
+            <h2 style="font-size:1.1rem; margin-top:1.2rem;">🔬 Visualizador de Geometria Molecular 3D</h2>
             <ul>
-                <li><strong>Ecossistema Gráfico PhET (Scenery, Dot e Axon):</strong> Utilizado como base de arquitetura para a renderização de grafos de cena interativos, gestão reativa de estado e motores matemáticos 2D.</li>
-                <li><strong>Integração com PubChem:</strong> Algoritmos dedicados ao consumo e tradução de dados estruturais de compostos químicos reais.</li>
-                <li><strong>Padrões Web Nativos (HTML5, CSS3 e ES6+):</strong> Garantem compatibilidade universal com computadores, tablets e telemóveis, sem necessidade de instalações complexas.</li>
+                <li>Renderização WebGL em tempo real com <strong>3Dmol.js</strong> a partir de dados SDF 3D do PubChem</li>
+                <li><strong>Dois modos de visualização:</strong> Bastões e Esferas (ball-and-stick) e Só Esferas CPK (espaço preenchido)</li>
+                <li><strong>Rotação automática</strong> a 1.5× de velocidade; pausa ao interagir e retoma ao soltar</li>
+                <li>Inferência automática da geometria VSEPR (linear, angular, tetraédrica, piramidal trigonal, etc.)</li>
+            </ul>
+
+            <h2 style="font-size:1.1rem; margin-top:1.2rem;">📐 Sobreposições Científicas</h2>
+            <ul>
+                <li><strong>Símbolos dos elementos</strong> — etiquetas com o símbolo e cor CPK de cada átomo</li>
+                <li><strong>Ângulos de ligação</strong> — arco curvo fino entre os pares de ligações com o valor em graus ao lado</li>
+                <li><strong>Pares de eletrões livres</strong> — esferas translúcidas cinzentas com dois pontos amarelos (estilo VSEPR/PhET), posicionadas por minimização de energia de Coulomb</li>
+                <li><strong>Vetor dipolo molecular (μ)</strong> — seta laranja com magnitude em Debye; mostra "Apolar" quando μ ≈ 0</li>
+            </ul>
+
+            <h2 style="font-size:1.1rem; margin-top:1.2rem;">📚 Biblioteca de Moléculas</h2>
+            <ul>
+                <li>Mais de 40 moléculas organizadas em 5 categorias: Orgânicas, Inorgânicas, Iónicas, Elementares e Complexas</li>
+                <li>Pesquisa em tempo real por nome ou fórmula</li>
+                <li>Acesso direto ao visualizador 3D de cada molécula</li>
+            </ul>
+
+            <h2 style="font-size:1.1rem; margin-top:1.2rem;">📖 Literatura Científica</h2>
+            <ul>
+                <li>Descrição química do composto obtida automaticamente do <strong>PubChem</strong></li>
+                <li>Até 3 artigos científicos relacionados via <strong>CrossRef</strong> (gratuito, sem limites de taxa)</li>
+                <li><strong>Tradução automática</strong> de todo o conteúdo para Português via API MyMemory — sem necessidade de chave de API</li>
             </ul>
         </section>
 
+        <!-- ═══ 4. ARQUITETURA ═══ -->
         <section>
-            <h2>👥 Autoria</h2>
+            <h2>⚙️ Arquitetura de Software e Tecnologias</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Camada</th>
+                        <th>Tecnologia</th>
+                        <th>Função</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Backend</strong></td>
+                        <td><span class="badge verde">Node.js 20</span> <span class="badge verde">Express</span></td>
+                        <td>Servidor HTTP, proxy das APIs externas (CORS), servir ficheiros estáticos</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Visualização 3D</strong></td>
+                        <td><span class="badge">3Dmol.js</span></td>
+                        <td>Renderização WebGL de moléculas a partir de SDF; átomos, ligações, setas, esferas e etiquetas</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dados moleculares</strong></td>
+                        <td><span class="badge laranja">PubChem REST API</span></td>
+                        <td>Estruturas SDF 3D/2D, propriedades químicas (fórmula, massa molar, carga…) e descrições</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Literatura</strong></td>
+                        <td><span class="badge laranja">CrossRef API</span></td>
+                        <td>Busca de artigos científicos por nome IUPAC da molécula; gratuito e sem chave</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Tradução</strong></td>
+                        <td><span class="badge roxo">MyMemory API</span></td>
+                        <td>Tradução automática de descrições e resumos de artigos para Português no servidor</td>
+                    </tr>
+                    <tr>
+                        <td><strong>VSEPR / Matemática</strong></td>
+                        <td><span class="badge">JavaScript puro</span></td>
+                        <td>Inferência de geometria, cálculo de ângulos, slerp para arcos, minimização de Coulomb para pares livres</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Frontend</strong></td>
+                        <td><span class="badge">HTML5</span> <span class="badge">CSS3</span> <span class="badge">ES6+</span></td>
+                        <td>Interface responsiva sem frameworks; funciona em computadores, tablets e telemóveis</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 style="font-size:1.1rem; margin-top:1.2rem;">🔌 Rotas da API (proxy em <code>/api/</code>)</h2>
+            <table>
+                <thead>
+                    <tr><th>Rota</th><th>Descrição</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>GET /api/biblioteca</code></td><td>Lista completa de moléculas organizada por categoria</td></tr>
+                    <tr><td><code>GET /api/pubchem/sdf/:query</code></td><td>Estrutura SDF 3D (ou 2D como fallback) do PubChem</td></tr>
+                    <tr><td><code>GET /api/pubchem/info/:query</code></td><td>Propriedades químicas do composto (PubChem)</td></tr>
+                    <tr><td><code>GET /api/pubchem/descricao/:query</code></td><td>Descrição do composto já traduzida para Português</td></tr>
+                    <tr><td><code>GET /api/scholar/:query</code></td><td>Artigos científicos via CrossRef com tradução automática</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ═══ 5. ESTRUTURA DE FICHEIROS ═══ -->
+        <section>
+            <h2>📁 Estrutura de Ficheiros</h2>
+            <table>
+                <thead>
+                    <tr><th>Ficheiro</th><th>Função</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>server.js</code></td><td>Backend Express — rotas API, proxy PubChem/CrossRef, tradutor</td></tr>
+                    <tr><td><code>index.html</code></td><td>Página inicial — menu de acesso a todas as secções</td></tr>
+                    <tr><td><code>geometria.html</code></td><td>Visualizador de geometria molecular 3D (página principal)</td></tr>
+                    <tr><td><code>biblioteca.html</code></td><td>Biblioteca de moléculas por categoria com pesquisa</td></tr>
+                    <tr><td><code>descricao.html</code></td><td>Esta página — descrição, arquitetura e tecnologias do projeto</td></tr>
+                    <tr><td><code>js/geometria.js</code></td><td>Toda a lógica 3D: inicialização do viewer, VSEPR, ângulos, pares livres, dipolo, literatura</td></tr>
+                    <tr><td><code>css/estilo.css</code></td><td>Estilos do visualizador e painéis laterais</td></tr>
+                    <tr><td><code>css/biblioteca.css</code></td><td>Estilos da biblioteca de moléculas</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ═══ 6. AUTORIA ═══ -->
+        <section>
+            <h2>👥 Autoria e Enquadramento Institucional</h2>
             <p>
-                Projeto desenvolvido com foco na inovação educacional tecnológica, unindo rigor científico e engenharia de software para o fortalecimento do ensino superior e secundário em Moçambique.
+                Projeto desenvolvido no âmbito das iniciativas de inovação educacional da <strong>Universidade Licungo</strong>, Moçambique, unindo rigor científico e engenharia de software para o fortalecimento do ensino superior e secundário. Concebido e construído com foco na acessibilidade, no contexto do programa <strong>STEM Licungo</strong>, que visa promover a literacia científica e tecnológica nas comunidades académicas moçambicanas.
             </p>
         </section>
     </main>
